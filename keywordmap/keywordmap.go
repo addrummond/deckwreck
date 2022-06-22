@@ -39,8 +39,8 @@ type Trie struct {
 	//     * 0 if no keyword terminates at this node, or 1 + i for the index i of
 	//       the relevant keyword.
 	//
-	// The total size of each trie node is therefore 17 uint16 words.
-	backingArray []uintType
+	// The total size of each trie node is therefore 17 uintType words.
+	backingSlice []uintType
 	next         int
 }
 
@@ -80,7 +80,7 @@ func MakeTrie[T ByteIndexable](keywords []T) (Trie, bool) {
 	}
 
 	var trie Trie
-	trie.backingArray = make([]uintType, size)
+	trie.backingSlice = make([]uintType, size)
 	trie.next = 2
 
 	for wi, k := range keywords {
@@ -115,20 +115,20 @@ func addToTrie[T ByteIndexable](trie *Trie, word T, wordIndex int) bool {
 			return false
 		}
 
-		if trie.backingArray[childIndexI] == 0 {
+		if trie.backingSlice[childIndexI] == 0 {
 			if trie.next >= maxEntries {
 				return false
 			}
 
-			trie.backingArray[childIndexI] = uintType(trie.next)
+			trie.backingSlice[childIndexI] = uintType(trie.next)
 			off = trie.next
 			trie.next++
 		} else {
-			off = int(trie.backingArray[childIndexI])
+			off = int(trie.backingSlice[childIndexI])
 		}
 
 		if i == last {
-			trie.backingArray[off*nodeSize+nodeSize-1] = uintType(wordIndex + 1)
+			trie.backingSlice[off*nodeSize+nodeSize-1] = uintType(wordIndex + 1)
 		}
 	}
 
@@ -138,7 +138,7 @@ func addToTrie[T ByteIndexable](trie *Trie, word T, wordIndex int) bool {
 // KeywordIndex returns the index of word in the list of keywords passed to
 // MakeTrie, or -1 if it is not present.
 func KeywordIndex[T ByteIndexable](trie *Trie, word T) int {
-	ba := trie.backingArray
+	ba := trie.backingSlice
 
 	off := 1
 
@@ -170,4 +170,29 @@ func KeywordIndex[T ByteIndexable](trie *Trie, word T) int {
 	}
 
 	return int(ba[off*nodeSize+nodeSize-1]) - 1
+}
+
+// GetBackingSlice returns a copy of the Trie's backing slice. This value (or
+// another slice with the same contents) can be passed to
+// MakeTrieFromBackingArray. It serves no other purpose and has no defined
+// interpretation.
+func GetBackingSlice(trie *Trie) []uintType {
+	a := make([]uintType, len(trie.backingSlice))
+	copy(a, trie.backingSlice)
+	return a
+}
+
+// MakeTrieFromBackingSlice can be used for minimal-cost construction of a Trie.
+// Follow these steps:
+//   * Construct your desired Trie in some scratch code using MakeTrie.
+//   * Use GetBackingSlice to get the contents of the backing slice.
+//   * Copy the contents of the backing slice into your code as a constant.
+//   * Use this constant as the argument to MakeTrieFromBackingSlice.
+// It should rarely (if ever) be necessary to initialize a Trie using this function,
+// as MakeTrie is not at all expensive.
+func MakeTrieFromBackingSlice(slice []uintType) Trie {
+	return Trie{
+		backingSlice: slice,
+		next:         len(slice),
+	}
 }
