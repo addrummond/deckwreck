@@ -136,7 +136,7 @@ func addToTrie[T ByteIndexable](trie *Trie, word T, wordIndex int, next *int) bo
 
 // KeywordIndex returns the index of word in the list of keywords passed to
 // MakeTrie, or -1 if it is not present.
-func KeywordIndex[T ByteIndexable](trie *Trie, word T) int {
+func KeywordIndex[T ByteIndexable](trie Trie, word T) int {
 	ba := trie.backingSlice
 
 	off := 1
@@ -175,7 +175,7 @@ func KeywordIndex[T ByteIndexable](trie *Trie, word T) int {
 // another slice with the same contents) can be passed to
 // MakeTrieFromBackingArray. It serves no other purpose and has no defined
 // interpretation.
-func GetBackingSlice(trie *Trie) []uintType {
+func GetBackingSlice(trie Trie) []uintType {
 	a := make([]uintType, len(trie.backingSlice))
 	copy(a, trie.backingSlice)
 	return a

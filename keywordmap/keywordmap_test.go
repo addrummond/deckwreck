@@ -13,25 +13,25 @@ func TestMakeTrieWithStrings(t *testing.T) {
 		t.Errorf("Expecting trie to be constructed successfuly.")
 	}
 
-	if KeywordIndex(&trie, "debu") != 0 {
+	if KeywordIndex(trie, "debu") != 0 {
 		t.Errorf("Expecting 'debug' to be in trie")
 	}
-	if KeywordIndex(&trie, "with") != 1 {
+	if KeywordIndex(trie, "with") != 1 {
 		t.Errorf("Expecting 'with' to be in trie")
 	}
-	if KeywordIndex(&trie, "and") != 2 {
+	if KeywordIndex(trie, "and") != 2 {
 		t.Errorf("Expecting 'and' to be in trie")
 	}
-	if KeywordIndex(&trie, "for") != 3 {
+	if KeywordIndex(trie, "for") != 3 {
 		t.Errorf("Expecting 'for' to be in trie")
 	}
-	if KeywordIndex(&trie, "case") != 4 {
+	if KeywordIndex(trie, "case") != 4 {
 		t.Errorf("Expecting 'case' to be in trie")
 	}
-	if KeywordIndex(&trie, "to") != 5 {
+	if KeywordIndex(trie, "to") != 5 {
 		t.Errorf("Expecting 'to' to be in trie")
 	}
-	if KeywordIndex(&trie, "form") != 6 {
+	if KeywordIndex(trie, "form") != 6 {
 		t.Errorf("Expecting 'form' to be in trie")
 	}
 
@@ -40,40 +40,40 @@ func TestMakeTrieWithStrings(t *testing.T) {
 	for a := 0; a < 27; a++ {
 		if a == 26 {
 			s = ""
-			expectStringNotInTrie(t, &trie, s)
+			expectStringNotInTrie(t, trie, s)
 			break
 		}
 
 		for b := 0; b < 27; b++ {
 			if b == 26 {
 				s = fmt.Sprintf("%c", rune('a'+a))
-				expectStringNotInTrie(t, &trie, s)
+				expectStringNotInTrie(t, trie, s)
 				break
 			}
 
 			for c := 0; c < 27; c++ {
 				if c == 26 {
 					s = fmt.Sprintf("%c%c", rune('a'+a), rune('a'+b))
-					expectStringNotInTrie(t, &trie, s)
+					expectStringNotInTrie(t, trie, s)
 					break
 				}
 
 				for d := 0; d < 27; d++ {
 					if d == 26 {
 						s = fmt.Sprintf("%c%c%c", rune('a'+a), rune('a'+b), rune('a'+c))
-						expectStringNotInTrie(t, &trie, s)
+						expectStringNotInTrie(t, trie, s)
 						break
 					}
 
 					s = fmt.Sprintf("%c%c%c%c", rune('a'+a), rune('a'+b), rune('a'+c), rune('a'+d))
-					expectStringNotInTrie(t, &trie, s)
+					expectStringNotInTrie(t, trie, s)
 				}
 			}
 		}
 	}
 }
 
-func expectStringNotInTrie(t *testing.T, trie *Trie, s string) {
+func expectStringNotInTrie(t *testing.T, trie Trie, s string) {
 	if s != "debu" && s != "with" && s != "and" && s != "for" && s != "case" && s != "to" && s != "form" {
 		if KeywordIndex(trie, s) != -1 {
 			t.Errorf("Did not expect to find '%v' in trie", s)
@@ -87,25 +87,25 @@ func TestMakeTrieWithByteArrays(t *testing.T) {
 		t.Errorf("Expecting trie to be constructed successfuly.")
 	}
 
-	if KeywordIndex(&trie, []byte("debu")) != 0 {
+	if KeywordIndex(trie, []byte("debu")) != 0 {
 		t.Errorf("Expecting 'debug' to be in trie")
 	}
-	if KeywordIndex(&trie, []byte("with")) != 1 {
+	if KeywordIndex(trie, []byte("with")) != 1 {
 		t.Errorf("Expecting 'with' to be in trie")
 	}
-	if KeywordIndex(&trie, []byte("and")) != 2 {
+	if KeywordIndex(trie, []byte("and")) != 2 {
 		t.Errorf("Expecting 'and' to be in trie")
 	}
-	if KeywordIndex(&trie, []byte("for")) != 3 {
+	if KeywordIndex(trie, []byte("for")) != 3 {
 		t.Errorf("Expecting 'for' to be in trie")
 	}
-	if KeywordIndex(&trie, []byte("case")) != 4 {
+	if KeywordIndex(trie, []byte("case")) != 4 {
 		t.Errorf("Expecting 'case' to be in trie")
 	}
-	if KeywordIndex(&trie, []byte("to")) != 5 {
+	if KeywordIndex(trie, []byte("to")) != 5 {
 		t.Errorf("Expecting 'to' to be in trie")
 	}
-	if KeywordIndex(&trie, []byte("form")) != 6 {
+	if KeywordIndex(trie, []byte("form")) != 6 {
 		t.Errorf("Expecting 'form' to be in trie")
 	}
 
@@ -114,40 +114,40 @@ func TestMakeTrieWithByteArrays(t *testing.T) {
 	for a := 0; a < 27; a++ {
 		if a == 26 {
 			ba = []byte{}
-			expectByteArrayNotInTrie(t, &trie, ba)
+			expectByteArrayNotInTrie(t, trie, ba)
 			break
 		}
 
 		for b := 0; b < 27; b++ {
 			if b == 26 {
 				ba = []byte(fmt.Sprintf("%c", rune('a'+a)))
-				expectByteArrayNotInTrie(t, &trie, ba)
+				expectByteArrayNotInTrie(t, trie, ba)
 				break
 			}
 
 			for c := 0; c < 27; c++ {
 				if c == 26 {
 					ba = []byte(fmt.Sprintf("%c%c", rune('a'+a), rune('a'+b)))
-					expectByteArrayNotInTrie(t, &trie, ba)
+					expectByteArrayNotInTrie(t, trie, ba)
 					break
 				}
 
 				for d := 0; d < 27; d++ {
 					if d == 26 {
 						ba = []byte(fmt.Sprintf("%c%c%c", rune('a'+a), rune('a'+b), rune('a'+c)))
-						expectByteArrayNotInTrie(t, &trie, ba)
+						expectByteArrayNotInTrie(t, trie, ba)
 						break
 					}
 
 					ba = []byte(fmt.Sprintf("%c%c%c%c", rune('a'+a), rune('a'+b), rune('a'+c), rune('a'+d)))
-					expectByteArrayNotInTrie(t, &trie, ba)
+					expectByteArrayNotInTrie(t, trie, ba)
 				}
 			}
 		}
 	}
 }
 
-func expectByteArrayNotInTrie(t *testing.T, trie *Trie, ba []byte) {
+func expectByteArrayNotInTrie(t *testing.T, trie Trie, ba []byte) {
 	if string(ba) != "debu" && string(ba) != "with" && string(ba) != "and" && string(ba) != "for" && string(ba) != "case" && string(ba) != "to" && string(ba) != "form" {
 		if KeywordIndex(trie, ba) != -1 {
 			t.Errorf("Did not expect to find '%v' in trie", string(ba))
@@ -166,7 +166,7 @@ func TestTooBigTrie(t *testing.T) {
 	}
 
 	// trie returned should be a dummy empty trie
-	if KeywordIndex(&trie, "foo") != -1 || KeywordIndex(&trie, "bar") != -1 {
+	if KeywordIndex(trie, "foo") != -1 || KeywordIndex(trie, "bar") != -1 {
 		t.Errorf("Expecting empty trie")
 	}
 }
@@ -178,18 +178,18 @@ func TestEmptyTrie(t *testing.T) {
 		t.Errorf("Expecting trie to be constructed successfully")
 	}
 
-	if KeywordIndex(&trie, "") != -1 {
+	if KeywordIndex(trie, "") != -1 {
 		t.Errorf("Expecting empty string to be absent")
 	}
-	if KeywordIndex(&trie, []byte{}) != -1 {
+	if KeywordIndex(trie, []byte{}) != -1 {
 		t.Errorf("Expecting empty byte array to be absent")
 	}
 
 	for i := 0; i < 256; i++ {
-		if KeywordIndex(&trie, []byte{byte(i)}) != -1 {
+		if KeywordIndex(trie, []byte{byte(i)}) != -1 {
 			t.Errorf("Expecting one element byte array to be absent")
 		}
-		if KeywordIndex(&trie, string([]byte{byte(i)})) != -1 {
+		if KeywordIndex(trie, string([]byte{byte(i)})) != -1 {
 			t.Errorf("Expecting one byte string to be absent")
 		}
 	}
@@ -204,25 +204,25 @@ func BenchmarkTrie(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		if KeywordIndex(&trie, "cape") != -1 {
+		if KeywordIndex(trie, "cape") != -1 {
 			panic("Internal error [1] in benchmark")
 		}
-		if KeywordIndex(&trie, "dooby") != -1 {
+		if KeywordIndex(trie, "dooby") != -1 {
 			panic("Internal error [2] in benchmark")
 		}
-		if KeywordIndex(&trie, "fudge") != -1 {
+		if KeywordIndex(trie, "fudge") != -1 {
 			panic("Internal error [3] in benchmark")
 		}
-		if KeywordIndex(&trie, "case") == -1 {
+		if KeywordIndex(trie, "case") == -1 {
 			panic("Internal error [4] in benchmark")
 		}
-		if KeywordIndex(&trie, "debug") == -1 {
+		if KeywordIndex(trie, "debug") == -1 {
 			panic("Internal error [5] in benchmark")
 		}
-		if KeywordIndex(&trie, "for") == -1 {
+		if KeywordIndex(trie, "for") == -1 {
 			panic("Internal error [6] in benchmark")
 		}
-		if KeywordIndex(&trie, "form") == -1 {
+		if KeywordIndex(trie, "form") == -1 {
 			panic("Internal error [7] in benchmark")
 		}
 	}
@@ -284,11 +284,11 @@ func BenchmarkRandomTrie(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for j, w := range td.ToTest {
 			if td.InTrie[j] {
-				if KeywordIndex(&trie, w) == -1 {
+				if KeywordIndex(trie, w) == -1 {
 					panic("Internal error [15] in benchmark")
 				}
 			} else {
-				if KeywordIndex(&trie, w) != -1 {
+				if KeywordIndex(trie, w) != -1 {
 					panic("Internal error [16] in benchmark")
 				}
 			}
