@@ -41,7 +41,6 @@ type Trie struct {
 	//
 	// The total size of each trie node is therefore 17 uintType words.
 	backingSlice []uintType
-	next         int
 }
 
 // ByteIndexable is a string or byte slice
@@ -81,10 +80,10 @@ func MakeTrie[T ByteIndexable](keywords []T) (Trie, bool) {
 
 	var trie Trie
 	trie.backingSlice = make([]uintType, size)
-	trie.next = 2
+	next := 2
 
 	for wi, k := range keywords {
-		if !addToTrie(&trie, k, wi) {
+		if !addToTrie(&trie, k, wi, &next) {
 			return makeEmptyTrie(), false
 		}
 	}
@@ -93,10 +92,10 @@ func MakeTrie[T ByteIndexable](keywords []T) (Trie, bool) {
 }
 
 func makeEmptyTrie() Trie {
-	return Trie{make([]uintType, nodeSize*2), 1}
+	return Trie{make([]uintType, nodeSize*2)}
 }
 
-func addToTrie[T ByteIndexable](trie *Trie, word T, wordIndex int) bool {
+func addToTrie[T ByteIndexable](trie *Trie, word T, wordIndex int, next *int) bool {
 	if wordIndex >= maxEntries-1 {
 		return false
 	}
@@ -116,13 +115,13 @@ func addToTrie[T ByteIndexable](trie *Trie, word T, wordIndex int) bool {
 		}
 
 		if trie.backingSlice[childIndexI] == 0 {
-			if trie.next >= maxEntries {
+			if *next >= maxEntries {
 				return false
 			}
 
-			trie.backingSlice[childIndexI] = uintType(trie.next)
-			off = trie.next
-			trie.next++
+			trie.backingSlice[childIndexI] = uintType(*next)
+			off = *next
+			(*next)++
 		} else {
 			off = int(trie.backingSlice[childIndexI])
 		}
@@ -191,8 +190,5 @@ func GetBackingSlice(trie *Trie) []uintType {
 // It should rarely (if ever) be necessary to initialize a Trie using this function,
 // as MakeTrie is not at all expensive.
 func MakeTrieFromBackingSlice(slice []uintType) Trie {
-	return Trie{
-		backingSlice: slice,
-		next:         len(slice),
-	}
+	return Trie{slice}
 }
