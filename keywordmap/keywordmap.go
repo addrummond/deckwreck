@@ -57,7 +57,7 @@ type ByteIndexable interface {
 // succeed if you do not have more than a few hundred keywords.
 func MakeTrie[T ByteIndexable](keywords []T) (Trie, bool) {
 	if len(keywords) == 0 {
-		return makeEmptyTrie(), true
+		return MakeEmptyTrie(), true
 	}
 
 	maxLen := 0
@@ -70,32 +70,31 @@ func MakeTrie[T ByteIndexable](keywords []T) (Trie, bool) {
 		totalLen += len(k)
 	}
 
-	// worst case estimation
-	size := nodeSize*(totalLen*2+len(keywords)) + nodeSize
-	// if worst case estimation is greater than maxEntries, we might still be able to
-	// build the trie, so worth a try
-	if size > maxEntries*nodeSize {
-		size = maxEntries * nodeSize
-	}
-
 	var trie Trie
-	trie.backingSlice = make([]uintType, size)
-	next := 2
+	trie.backingSlice = make([]uintType, nodeSize*2)
 
 	for wi, k := range keywords {
-		if !addToTrie(&trie, k, wi, &next) {
-			return makeEmptyTrie(), false
+		if !AddToTrie(&trie, k, wi) {
+			return MakeEmptyTrie(), false
 		}
 	}
 
 	return trie, true
 }
 
-func makeEmptyTrie() Trie {
+// MakeEmptyTrie returns an empty trie.
+func MakeEmptyTrie() Trie {
 	return Trie{make([]uintType, nodeSize*2)}
 }
 
-func addToTrie[T ByteIndexable](trie *Trie, word T, wordIndex int, next *int) bool {
+// AddToTrie adds word to the Trie and associates it with the index wordIndex.
+// It returns true if the word was successfully added to the Trie, or false
+// otherwise. In the case where it returns false, part of the word may have been
+// added to the Trie.
+//
+// It is usually better to construct Tries using MakeTrie. AddToTrie is useful
+// if there are gaps in the sequence of indices associated with each keyword.
+func AddToTrie[T ByteIndexable](trie *Trie, word T, wordIndex int) bool {
 	if wordIndex >= maxEntries-1 {
 		return false
 	}
@@ -115,13 +114,13 @@ func addToTrie[T ByteIndexable](trie *Trie, word T, wordIndex int, next *int) bo
 		}
 
 		if trie.backingSlice[childIndexI] == 0 {
-			if *next >= maxEntries {
+			if len(trie.backingSlice) >= maxEntries {
 				return false
 			}
 
-			trie.backingSlice[childIndexI] = uintType(*next)
-			off = *next
-			(*next)++
+			trie.backingSlice[childIndexI] = uintType(len(trie.backingSlice) / nodeSize)
+			off = len(trie.backingSlice) / nodeSize
+			trie.backingSlice = append(trie.backingSlice, make([]uintType, nodeSize)...)
 		} else {
 			off = int(trie.backingSlice[childIndexI])
 		}
