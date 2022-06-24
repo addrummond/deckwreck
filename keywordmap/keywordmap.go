@@ -105,17 +105,15 @@ func MakeEmptyTrie[I constraints.Unsigned]() GenericTrie[I] {
 // It is usually better to construct tries using MakeTrie. AddToTrie is useful
 // if there are gaps in the sequence of indices associated with each keyword.
 func AddToTrie[T ByteIndexable, I constraints.Unsigned](trie *GenericTrie[I], word T, wordIndex int) bool {
-	// first node in array is a dummy node that leads nowhere. it's useful for
-	// slightly reducing branching in the traversal code.
-
-	// If 'I' can store a bigger positive value than 'int', then 'max' (given that
-	// it is an int) must end up being <= ^int(0). If int can store a bigger value
-	// than I, then the cast works fine.
+	// == MIN(maximum positive value of I, maximum positive value of int)
 	max := int(^I(0))
 
 	if wordIndex+1 >= max {
 		return false
 	}
+
+	// first node in array is a dummy node that leads nowhere. it's useful for
+	// slightly reducing branching in the traversal code.
 
 	off := 1
 	last := len(word)*2 - 1
