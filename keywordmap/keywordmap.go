@@ -195,7 +195,7 @@ func GetBackingSlice[I constraints.Unsigned](trie GenericTrie[I]) []I {
 
 // MakeTrieFromBackingSlice can be used for minimal-cost construction of a trie.
 // Follow these steps:
-//   * Construct your desired trie in some scratch code using MakeTrie.
+//   * Construct your desired trie in some scratch code using MakeTrie/MakeGenericTrie.
 //   * Use GetBackingSlice to get the contents of the backing slice.
 //   * Copy the contents of the backing slice into your code as a constant.
 //   * Use this constant as the argument to MakeTrieFromBackingSlice.
