@@ -1,28 +1,32 @@
 // Package keywordmap provides a trie-based implemetation of a map from strings
 // to indices. Its intended use is mapping strings to indices into a list of
-// keywords. Strings are considered as sequences of bytes. Both the number of
-// strings and number of indices must be 'small'. Indices must be less than
-// 65535, and the concatenation of the string keys must have less than 65536
-// characters in total in the worst case. These restrictions are unproblematic
-// for the package's intended use case, but make it wholly unsuitable as a
-// general replacement for map[string]int.
-//
-// Internally, keywordmap constructs a compact trie backed by an array of 16 bit
-// unsigned integers.
+// keywords. Strings are considered as sequences of bytes.
 //
 // For typical keyword sets, membership tests using keywordmap are about 1.5 – 2
-// times faster than tests using map[string]int (as benchmarked on an M1
-// MacBook Air).
+// times faster than tests using map[string]int (as benchmarked on an M1 MacBook
+// Air).
+//
+// Internally, keywordmap constructs a compact trie backed by an array of
+// unsigned integers. The default (and recommended) Trie type uses 16-bit
+// integers. This is sufficient for realistically sized sets of keywords. You
+// may use GenericTrie[uint32] for larger tries. However, this package is not
+// optimized for dealing with large sets of keywords.
 package keywordmap
 
-type uintType = uint16
+import "golang.org/x/exp/constraints"
 
-const maxEntries = int(^uintType(0)) + 1
+//const maxEntries = int(^uintType(0)) + 1
 const nodeSize = 17
 
-// Trie represents a small set of strings (such as the set of a programming
-// language's keywords). It should be constructed only via MakeTrie.
-type Trie struct {
+// Trie is the recommended instantiation of GenericTrie. A backing array of
+// uint16 suffices for sets of keywords with no more than a few hundred members.
+type Trie = GenericTrie[uint16]
+
+// GenericTrie represents a set of strings (such as the set of a programming
+// language's keywords). It should be constructed only via MakeGenericTrie (or
+// MakeTrie when I=uint16). The I type parameter specifies the types of the
+// elements of the backing array.
+type GenericTrie[I constraints.Unsigned] struct {
 	// Keywords are broken into sequences of 4 bit 'nibbles', with high nibbles
 	// coming before low nibbles. Each node in the trie therefore has at most 16
 	// children. This makes it feasible to use an array to store the indices of
@@ -39,8 +43,8 @@ type Trie struct {
 	//     * 0 if no keyword terminates at this node, or 1 + i for the index i of
 	//       the relevant keyword.
 	//
-	// The total size of each trie node is therefore 17 uintType words.
-	backingSlice []uintType
+	// The total size of each trie node is therefore 17 I-sized words.
+	backingSlice []I
 }
 
 // ByteIndexable is a string or byte slice
@@ -48,16 +52,21 @@ type ByteIndexable interface {
 	string | []byte
 }
 
-// MakeTrie constructs a trie from a set of keywords. Each keyword is considered
+// MakeTrie calls MakeGenericTrie with the I type parameter set to uint16 (the
+// recommended default).
+func MakeTrie[T ByteIndexable](keywords []T) (Trie, bool) {
+	return MakeGenericTrie[uint16](keywords)
+}
+
+// MakeGenericTrie constructs a trie from a set of keywords. Each keyword is considered
 // as a sequence of bytes. If your keywords have multiple possible encodings,
 // you will need to add each encoding to the trie. The second return value is
 // true if a suitable trie could be constructed, or false otherwise. In the
 // latter case, the returned trie is empty. A trie can fail to be constructed if
-// the set of keywords is too large. Generally speaking, construction should
-// succeed if you do not have more than a few hundred keywords.
-func MakeTrie[T ByteIndexable](keywords []T) (Trie, bool) {
+// the set of keywords is too large.
+func MakeGenericTrie[I constraints.Unsigned, T ByteIndexable](keywords []T) (GenericTrie[I], bool) {
 	if len(keywords) == 0 {
-		return MakeEmptyTrie(), true
+		return MakeEmptyTrie[I](), true
 	}
 
 	maxLen := 0
@@ -70,12 +79,12 @@ func MakeTrie[T ByteIndexable](keywords []T) (Trie, bool) {
 		totalLen += len(k)
 	}
 
-	var trie Trie
-	trie.backingSlice = make([]uintType, nodeSize*2)
+	var trie GenericTrie[I]
+	trie.backingSlice = make([]I, nodeSize*2)
 
 	for wi, k := range keywords {
 		if !AddToTrie(&trie, k, wi) {
-			return MakeEmptyTrie(), false
+			return MakeEmptyTrie[I](), false
 		}
 	}
 
@@ -83,24 +92,30 @@ func MakeTrie[T ByteIndexable](keywords []T) (Trie, bool) {
 }
 
 // MakeEmptyTrie returns an empty trie.
-func MakeEmptyTrie() Trie {
-	return Trie{make([]uintType, nodeSize*2)}
+func MakeEmptyTrie[I constraints.Unsigned]() GenericTrie[I] {
+	return GenericTrie[I]{make([]I, nodeSize*2)}
 }
 
-// AddToTrie adds word to the Trie and associates it with the index wordIndex.
-// It returns true if the word was successfully added to the Trie, or false
-// otherwise. In the case where it returns false, part of the word may have been
-// added to the Trie.
+// AddToTrie adds word to the trie and associates it with the index wordIndex.
+// It returns true if the word was successfully added to the trie, or false
+// otherwise. A word can fail to be added to the trie if the trie becomes too big.
+// In the case where AddToTrie returns false, part of the word may have been
+// added to the trie.
 //
-// It is usually better to construct Tries using MakeTrie. AddToTrie is useful
+// It is usually better to construct tries using MakeTrie. AddToTrie is useful
 // if there are gaps in the sequence of indices associated with each keyword.
-func AddToTrie[T ByteIndexable](trie *Trie, word T, wordIndex int) bool {
-	if wordIndex >= maxEntries-1 {
-		return false
-	}
-
+func AddToTrie[T ByteIndexable, I constraints.Unsigned](trie *GenericTrie[I], word T, wordIndex int) bool {
 	// first node in array is a dummy node that leads nowhere. it's useful for
 	// slightly reducing branching in the traversal code.
+
+	// If 'I' can store a bigger positive value than 'int', then 'max' (given that
+	// it is an int) must end up being <= ^int(0). If int can store a bigger value
+	// than I, then the cast works fine.
+	max := int(^I(0))
+
+	if wordIndex+1 >= max {
+		return false
+	}
 
 	off := 1
 	last := len(word)*2 - 1
@@ -109,24 +124,24 @@ func AddToTrie[T ByteIndexable](trie *Trie, word T, wordIndex int) bool {
 
 		childIndexI := (off * nodeSize) + b
 
-		if childIndexI >= maxEntries*nodeSize {
+		if childIndexI/nodeSize >= max {
 			return false
 		}
 
 		if trie.backingSlice[childIndexI] == 0 {
-			if len(trie.backingSlice) >= maxEntries {
+			if len(trie.backingSlice) >= max {
 				return false
 			}
 
-			trie.backingSlice[childIndexI] = uintType(len(trie.backingSlice) / nodeSize)
+			trie.backingSlice[childIndexI] = I(len(trie.backingSlice) / nodeSize)
 			off = len(trie.backingSlice) / nodeSize
-			trie.backingSlice = append(trie.backingSlice, make([]uintType, nodeSize)...)
+			trie.backingSlice = append(trie.backingSlice, make([]I, nodeSize)...)
 		} else {
 			off = int(trie.backingSlice[childIndexI])
 		}
 
 		if i == last {
-			trie.backingSlice[off*nodeSize+nodeSize-1] = uintType(wordIndex + 1)
+			trie.backingSlice[off*nodeSize+nodeSize-1] = I(wordIndex + 1)
 		}
 	}
 
@@ -134,8 +149,8 @@ func AddToTrie[T ByteIndexable](trie *Trie, word T, wordIndex int) bool {
 }
 
 // KeywordIndex returns the index of word in the list of keywords passed to
-// MakeTrie, or -1 if it is not present.
-func KeywordIndex[T ByteIndexable](trie Trie, word T) int {
+// MakeTrie/MakeGenericTrie, or -1 if it is not present.
+func KeywordIndex[T ByteIndexable, I constraints.Unsigned](trie GenericTrie[I], word T) int {
 	ba := trie.backingSlice
 
 	off := 1
@@ -170,24 +185,24 @@ func KeywordIndex[T ByteIndexable](trie Trie, word T) int {
 	return int(ba[off*nodeSize+nodeSize-1]) - 1
 }
 
-// GetBackingSlice returns a copy of the Trie's backing slice. This value (or
+// GetBackingSlice returns a copy of the trie's backing slice. This value (or
 // another slice with the same contents) can be passed to
 // MakeTrieFromBackingArray. It serves no other purpose and has no defined
 // interpretation.
-func GetBackingSlice(trie Trie) []uintType {
-	a := make([]uintType, len(trie.backingSlice))
+func GetBackingSlice[I constraints.Unsigned](trie GenericTrie[I]) []I {
+	a := make([]I, len(trie.backingSlice))
 	copy(a, trie.backingSlice)
 	return a
 }
 
-// MakeTrieFromBackingSlice can be used for minimal-cost construction of a Trie.
+// MakeTrieFromBackingSlice can be used for minimal-cost construction of a trie.
 // Follow these steps:
-//   * Construct your desired Trie in some scratch code using MakeTrie.
+//   * Construct your desired trie in some scratch code using MakeTrie.
 //   * Use GetBackingSlice to get the contents of the backing slice.
 //   * Copy the contents of the backing slice into your code as a constant.
 //   * Use this constant as the argument to MakeTrieFromBackingSlice.
-// It should rarely (if ever) be necessary to initialize a Trie using this function,
-// as MakeTrie is not at all expensive.
-func MakeTrieFromBackingSlice(slice []uintType) Trie {
-	return Trie{slice}
+// It should rarely (if ever) be necessary to initialize a trie using this function,
+// as MakeTrie/MakeGenericTrie are not at all expensive.
+func MakeTrieFromBackingSlice[I constraints.Unsigned](slice []I) GenericTrie[I] {
+	return GenericTrie[I]{slice}
 }
