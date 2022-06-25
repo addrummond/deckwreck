@@ -353,7 +353,7 @@ func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxta
 					hole = &errorNode.right
 					*parenRootP = errorNode
 				} else {
-					n := findOpLevel(e, parenRootP, hole)
+					n := findOpLevel(*juxtapositionElement, parenRootP, hole)
 					opNode := &pool.nodes[poolI]
 					zeroNode(opNode)
 					poolI++
@@ -394,7 +394,7 @@ func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxta
 					hole = &errorNode.right
 					*parenRootP = errorNode
 				} else {
-					n := findOpLevel(e, parenRootP, hole)
+					n := findOpLevel(*juxtapositionElement, parenRootP, hole)
 					opNode := &pool.nodes[poolI]
 					zeroNode(opNode)
 					poolI++
@@ -457,7 +457,7 @@ func findOpLevel[T any, E TreeBuilder[T, E]](e E, root **node[T, E], hole **node
 	precedenceCmp := e.Precedence(exprToLeft)
 	n := root
 
-	if (*n).elem.ExpressionKind(exprToLeft)&isRightAssoc == 0 {
+	if e.ExpressionKind(exprToLeft)&isRightAssoc == 0 {
 		precedenceCmp++
 	}
 
