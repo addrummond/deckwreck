@@ -367,7 +367,7 @@ func TestFoo(t *testing.T) {
 func benchmarkRightAssoc(b *testing.B, nArgs int) {
 	var sb strings.Builder
 	sb.WriteString("1")
-	for j := 0; j < nArgs; j++ {
+	for i := 0; i < nArgs; i++ {
 		sb.WriteString(" +{ 1")
 	}
 	input := sb.String()
