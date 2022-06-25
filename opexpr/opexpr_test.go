@@ -378,9 +378,9 @@ func benchmarkRightAssoc(b *testing.B, nArgs int) {
 	pool := MakeNodePool[SimpleNode[StringElement], StringElement](64)
 
 	for i := 0; i < b.N; i++ {
-		_, errs := ParseSlice(elems, pool)
+		r, errs := ParseSlice(elems, pool)
 		if len(errs) > 0 {
-			panic("Not expecting to get any errors")
+			b.Errorf("Not expecting to get any errors: %+v\n", r)
 		}
 	}
 }
