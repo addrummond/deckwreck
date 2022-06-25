@@ -185,8 +185,8 @@ func KeywordIndex[T ByteIndexable, I constraints.Unsigned](trie GenericTrie[I], 
 
 // GetBackingSlice returns a copy of the trie's backing slice. This value (or
 // another slice with the same contents) can be passed to
-// MakeTrieFromBackingArray. It serves no other purpose and has no defined
-// interpretation.
+// MakeTrieFromBackingArray. The return value serves no other purpose and has no
+// defined interpretation.
 func GetBackingSlice[I constraints.Unsigned](trie GenericTrie[I]) []I {
 	a := make([]I, len(trie.backingSlice))
 	copy(a, trie.backingSlice)
