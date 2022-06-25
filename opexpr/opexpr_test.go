@@ -426,3 +426,82 @@ func BenchmarkRightAssoc180(b *testing.B) {
 func BenchmarkRightAssoc200(b *testing.B) {
 	benchmarkRightAssoc(b, 200)
 }
+
+func bencharkLeftAssocInsideRightAssoc(b *testing.B, nArgs int) {
+	var sb strings.Builder
+	sb.WriteString("1")
+	for i := 0; i < nArgs; i++ {
+		sb.WriteString(" +++{ 1")
+	}
+	for i := 0; i < nArgs; i++ {
+		sb.WriteString(" **{ 1")
+	}
+	// If we have to descend down the entire right branching structure
+	// node-by-node for each of these higher-precedence left associative
+	// operators, then we won't get O(n) performance.
+	for i := 0; i < nArgs; i++ {
+		sb.WriteString(" * 1")
+	}
+	input := sb.String()
+	elems := MakeStringElements(input)
+
+	b.ResetTimer()
+
+	pool := MakeNodePool[SimpleNode[StringElement], StringElement](64)
+
+	for i := 0; i < b.N; i++ {
+		r, errs := ParseSlice(elems, pool)
+
+		if len(errs) > 0 {
+			b.Errorf("Not expecting to get any errors: %+v\n", r)
+		}
+	}
+}
+
+func BenchmarkLeftAssocInsideRightAssoc0(b *testing.B) {
+	bencharkLeftAssocInsideRightAssoc(b, 0)
+}
+
+func BenchmarkLeftAssocInsideRightAssoc1(b *testing.B) {
+	bencharkLeftAssocInsideRightAssoc(b, 1)
+}
+
+func BenchmarkLeftAssocInsideRightAssoc20(b *testing.B) {
+	bencharkLeftAssocInsideRightAssoc(b, 20)
+}
+
+func BenchmarkLeftAssocInsideRightAssoc40(b *testing.B) {
+	bencharkLeftAssocInsideRightAssoc(b, 40)
+}
+
+func BenchmarkLeftAssocInsideRightAssoc60(b *testing.B) {
+	bencharkLeftAssocInsideRightAssoc(b, 60)
+}
+
+func BenchmarkLeftAssocInsideRightAssoc80(b *testing.B) {
+	bencharkLeftAssocInsideRightAssoc(b, 80)
+}
+
+func BenchmarkLeftAssocInsideRightAssoc100(b *testing.B) {
+	bencharkLeftAssocInsideRightAssoc(b, 100)
+}
+
+func BenchmarkLeftAssocInsideRightAssoc120(b *testing.B) {
+	bencharkLeftAssocInsideRightAssoc(b, 120)
+}
+
+func BenchmarkLeftAssocInsideRightAssoc140(b *testing.B) {
+	bencharkLeftAssocInsideRightAssoc(b, 140)
+}
+
+func BenchmarkLeftAssocInsideRightAssoc160(b *testing.B) {
+	bencharkLeftAssocInsideRightAssoc(b, 160)
+}
+
+func BenchmarkLeftAssocInsideRightAssoc180(b *testing.B) {
+	bencharkLeftAssocInsideRightAssoc(b, 180)
+}
+
+func BenchmarkLeftAssocInsideRightAssoc200(b *testing.B) {
+	bencharkLeftAssocInsideRightAssoc(b, 200)
+}
