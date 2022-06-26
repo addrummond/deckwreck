@@ -252,6 +252,34 @@ func TestFoo(t *testing.T) {
 		{
 			WithoutJuxtaposition,
 			JuxLeftAssoc,
+			"1 (( 2 + 3 )",
+			"⎡1 (( ⎡2 + 3⎦⎦",
+			0,
+		},
+		{
+			WithoutJuxtaposition,
+			JuxLeftAssoc,
+			"1 (( 2 + 3 ) (( 4 + 5 )",
+			"⎡⎡1 (( ⎡2 + 3⎦⎦ (( ⎡4 + 5⎦⎦",
+			0,
+		},
+		{
+			WithoutJuxtaposition,
+			JuxLeftAssoc,
+			"1 [[ 2 + 3 ] [[ 4 ]",
+			"⎡⎡1 [[ ⎡2 + 3⎦⎦ [[ 4⎦",
+			0,
+		},
+		{
+			WithoutJuxtaposition,
+			JuxLeftAssoc,
+			"1 +{ ( 2 + 3 ) +{ ( 4 )",
+			"⎡1 +{ ⎡(⎡2 + 3⎦) +{ (4)⎦⎦",
+			0,
+		},
+		{
+			WithoutJuxtaposition,
+			JuxLeftAssoc,
 			"1 + 2 ++ 2 + 3",
 			"⎡⎡1 + 2⎦ ++ ⎡2 + 3⎦⎦",
 			0,
@@ -288,7 +316,7 @@ func TestFoo(t *testing.T) {
 			WithoutJuxtaposition,
 			JuxLeftAssoc,
 			"1 [[ 2 ] [[ 3 ]",
-			"⎡1 [[ ⎡2 [[ 3⎦⎦",
+			"⎡⎡1 [[ 2⎦ [[ 3⎦",
 			0,
 		},
 		{
@@ -324,6 +352,13 @@ func TestFoo(t *testing.T) {
 			JuxLeftAssoc,
 			"1 +++{ 2 +++{ 3 ++{ 4 ++{ 5 + 6 + 7 + 8",
 			"⎡1 +++{ ⎡2 +++{ ⎡3 ++{ ⎡4 ++{ ⎡⎡⎡5 + 6⎦ + 7⎦ + 8⎦⎦⎦⎦⎦",
+			0,
+		},
+		{
+			WithoutJuxtaposition,
+			JuxLeftAssoc,
+			"1 [[[ 2 + 3 ] + 4",
+			"⎡⎡1 [[[ ⎡2 + 3⎦⎦ + 4⎦",
 			0,
 		},
 	}

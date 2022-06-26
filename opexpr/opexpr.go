@@ -328,10 +328,8 @@ func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxta
 					depth++
 					pool.parenRoots = append(pool.parenRoots, &opNode.right)
 					pool.parenKinds = append(pool.parenKinds, e.ParenKind())
-					hole = &opNode.right
-				} else {
-					hole = &opNode.right
 				}
+				hole = &opNode.right
 			}
 
 			*n = opNode
@@ -343,7 +341,7 @@ func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxta
 				if juxtapositionElement == nil {
 					pe := &ParseError[E]{ParseErrorUnexpectedOperator, e}
 					errors = append(errors, pe)
-					parenRootP := pool.parenRoots[len(pool.parenRoots)-1]
+					//parenRootP := pool.parenRoots[len(pool.parenRoots)-1] // TODO do we need?
 					errorNode := &pool.nodes[poolI]
 					zeroNode(errorNode)
 					poolI++
@@ -384,7 +382,7 @@ func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxta
 				if juxtapositionElement == nil {
 					pe := &ParseError[E]{ParseErrorUnexpectedValue, e}
 					errors = append(errors, pe)
-					parenRootP := pool.parenRoots[len(pool.parenRoots)-1]
+					//parenRootP := pool.parenRoots[len(pool.parenRoots)-1] // TODO do we need?
 					errorNode := &pool.nodes[poolI]
 					zeroNode(errorNode)
 					poolI++
@@ -461,8 +459,27 @@ func findOpLevel[T any, E TreeBuilder[T, E]](e E, root **node[T, E], hole **node
 		precedenceCmp++
 	}
 
+	if (*n).err != nil {
+		return n
+	}
 	prec := (*n).elem.Precedence(exprToLeft)
-	for *n != nil && (*n).elem.ExpressionKind(exprToLeft)&hasRightArg != 0 && prec >= precedenceCmp {
+	for {
+		if *n == nil || (*n).err != nil {
+			return n
+		}
+		ek := (*n).elem.ExpressionKind(exprToLeft)
+		if ek&hasRightArg == 0 {
+			break
+		}
+		// don't descend into foo[bar]
+		// not necessary to check ek&isCloseParen == 0 because ')' wouldnt have ek&hasRightArg != 0
+		if ek&isParen != 0 && ek&(hasLeftArg|hasRightArg) != 0 {
+			break
+		}
+		if prec < precedenceCmp {
+			break
+		}
+
 		if (*n).bottom != nil {
 			n = &((*n).bottom.right)
 			prec = (*n).elem.Precedence(exprToLeft)
