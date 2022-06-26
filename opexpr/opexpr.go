@@ -459,9 +459,6 @@ func findOpLevel[T any, E TreeBuilder[T, E]](e E, root **node[T, E], hole **node
 		precedenceCmp++
 	}
 
-	if (*n).err != nil {
-		return n
-	}
 	prec := (*n).elem.Precedence(exprToLeft)
 	for {
 		if *n == nil || (*n).err != nil {
