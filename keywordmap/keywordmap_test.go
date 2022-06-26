@@ -272,8 +272,13 @@ type TestData struct {
 	InTrie   []bool
 }
 
+const randSeed = 54321
+
 func BenchmarkRandomTrie(b *testing.B) {
-	td := getRandomTestData()
+	source := rand.NewSource(randSeed)
+	r := rand.New(source)
+
+	td := getRandomTestData(r)
 	trie, ok := MakeTrie(td.Keywords)
 	if !ok {
 		b.Errorf("Expecting trie to be constructed successfuly.")
@@ -297,7 +302,10 @@ func BenchmarkRandomTrie(b *testing.B) {
 }
 
 func BenchmarkRandomHash(b *testing.B) {
-	td := getRandomTestData()
+	source := rand.NewSource(randSeed)
+	r := rand.New(source)
+
+	td := getRandomTestData(r)
 	keywords := make(map[string]int)
 	for i, k := range td.Keywords {
 		keywords[k] = i
@@ -322,8 +330,8 @@ func BenchmarkRandomHash(b *testing.B) {
 
 // With current seed produces 236 keywords and 76 strings to test (including the
 // 236 keywords).
-func getRandomTestData() (td TestData) {
-	rand.Seed(423423484)
+func getRandomTestData(r *rand.Rand) (td TestData) {
+	rand.Seed(randSeed)
 	seen := make(map[string]struct{})
 
 	var letterRunes = []rune("abcdefghijklmnopqrstuvwxyz")
@@ -331,10 +339,10 @@ func getRandomTestData() (td TestData) {
 		var s string
 
 		for {
-			length := rand.Intn(9) + 1
+			length := r.Intn(9) + 1
 			var sb strings.Builder
 			for j := 0; j < length; j++ {
-				sb.WriteRune(letterRunes[rand.Intn(len(letterRunes))])
+				sb.WriteRune(letterRunes[r.Intn(len(letterRunes))])
 			}
 
 			s = sb.String()
@@ -351,7 +359,7 @@ func getRandomTestData() (td TestData) {
 
 			// Add some prefixes to the trie
 			if len(s) >= 3 {
-				prefixLen := rand.Intn(len(s)-1) + 1
+				prefixLen := r.Intn(len(s)-1) + 1
 				prefix := s[0:prefixLen]
 
 				if _, ok := seen[prefix]; !ok {
