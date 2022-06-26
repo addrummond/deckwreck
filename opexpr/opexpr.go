@@ -341,7 +341,6 @@ func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxta
 				if juxtapositionElement == nil {
 					pe := &ParseError[E]{ParseErrorUnexpectedOperator, e}
 					errors = append(errors, pe)
-					//parenRootP := pool.parenRoots[len(pool.parenRoots)-1] // TODO do we need?
 					errorNode := &pool.nodes[poolI]
 					zeroNode(errorNode)
 					poolI++
@@ -382,7 +381,6 @@ func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxta
 				if juxtapositionElement == nil {
 					pe := &ParseError[E]{ParseErrorUnexpectedValue, e}
 					errors = append(errors, pe)
-					//parenRootP := pool.parenRoots[len(pool.parenRoots)-1] // TODO do we need?
 					errorNode := &pool.nodes[poolI]
 					zeroNode(errorNode)
 					poolI++
