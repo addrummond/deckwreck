@@ -1,6 +1,7 @@
 package opexpr
 
 import (
+	"math/rand"
 	"strings"
 	"testing"
 )
@@ -539,4 +540,37 @@ func BenchmarkLeftAssocInsideRightAssoc180(b *testing.B) {
 
 func BenchmarkLeftAssocInsideRightAssoc200(b *testing.B) {
 	bencharkLeftAssocInsideRightAssoc(b, 200)
+}
+
+// TestFuzz generates a bunch of random nonsense inputs and checks that none of
+// them give rise to runtime errors.
+func TestFuzz(t *testing.T) {
+	source := rand.NewSource(12345)
+	rand := rand.New(source)
+
+	pool := MakeNodePool[SimpleNode[StringElement], StringElement](64)
+	for i := 0; i < 10000; i++ {
+		seq := randomStringElementSequence(rand)
+		ParseSliceWithJuxtaposition(seq, nil, pool)
+	}
+}
+
+func randomStringElementSequence(r *rand.Rand) []StringElement {
+	l := r.Intn(20)
+	elems := make([]StringElement, 0)
+	for i := 0; i < l; i++ {
+		elems = append(elems, randomStringElement(r))
+	}
+	return elems
+}
+
+func randomStringElement(r *rand.Rand) StringElement {
+	chars := "+-/*{}[]()!&#$1234567890"
+	l := r.Intn(9) + 1
+	var sb strings.Builder
+	for i := 0; i < l; i++ {
+		c := chars[r.Intn(len(chars))]
+		sb.WriteByte(c)
+	}
+	return StringElement(sb.String())
 }

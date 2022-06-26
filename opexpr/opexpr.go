@@ -34,6 +34,12 @@ const (
 	// CloseAllParens is the ExpressionKind for a closing parenthesis that closes all
 	// currently open parentheses.
 	CloseAllParens ExpressionKind = isParen | isCloseParen | isCloseAllParen
+	// ParentheticalLeftAssoc is the expression kind for a left associative
+	// parenthetical operator (such as C/Javscript's [...] indexation operator).
+	ParentheticalLeftAssoc ExpressionKind = isParen | hasLeftArg | hasRightArg
+	// ParentheticalRightAssoc is the expression kind for a right associative
+	// parenthetical operator.
+	ParentheticalRightAssoc ExpressionKind = isParen | hasLeftArg | hasRightArg | isRightAssoc
 	// Value is the ExpressionKind for a value.
 	Value ExpressionKind = 0
 )
@@ -56,8 +62,12 @@ func (k ExpressionKind) String() string {
 		return "Postfix"
 	case Value:
 		return "Value"
+	case ParentheticalRightAssoc:
+		return "ParentheticalRightAssoc"
+	case ParentheticalLeftAssoc:
+		return "ParentheticalLefttAssoc"
 	default:
-		panic("Unrecognized OperatorKind")
+		panic(fmt.Sprintf("Unrecognized OperatorKind %v", int(k)))
 	}
 }
 
@@ -276,6 +286,7 @@ func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxta
 				pe := &ParseError[E]{ParseErrorUnexpectedClosingParen, e}
 				errors = append(errors, pe)
 				node := &pool.nodes[poolI]
+				poolI++
 				zeroNode(node)
 				node.left = root
 				node.err = pe
@@ -284,8 +295,8 @@ func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxta
 				pe := &ParseError[E]{ParseErrorWrongKindOfClosingParen, e}
 				errors = append(errors, pe)
 				node := &pool.nodes[poolI]
-				zeroNode(node)
 				poolI++
+				zeroNode(node)
 				rt := pool.parenRoots[len(pool.parenRoots)-1]
 				node.left = *rt
 				node.err = pe
@@ -304,8 +315,8 @@ func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxta
 				pe := &ParseError[E]{ParseErrorUnexpectedOperator, e}
 				errors = append(errors, pe)
 				errorNode := &pool.nodes[poolI]
-				zeroNode(errorNode)
 				poolI++
+				zeroNode(errorNode)
 				errorNode.elem = e
 				errorNode.err = pe
 				*hole = errorNode
@@ -316,8 +327,8 @@ func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxta
 			n := findOpLevel(e, parenRootP, hole)
 
 			opNode := &pool.nodes[poolI]
-			zeroNode(opNode)
 			poolI++
+			zeroNode(opNode)
 			opNode.elem = e
 			opNode.left = *n
 
@@ -342,8 +353,8 @@ func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxta
 					pe := &ParseError[E]{ParseErrorUnexpectedOperator, e}
 					errors = append(errors, pe)
 					errorNode := &pool.nodes[poolI]
-					zeroNode(errorNode)
 					poolI++
+					zeroNode(errorNode)
 					errorNode.elem = e
 					errorNode.left = *parenRootP
 					errorNode.err = pe
@@ -352,8 +363,8 @@ func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxta
 				} else {
 					n := findOpLevel(*juxtapositionElement, parenRootP, hole)
 					opNode := &pool.nodes[poolI]
-					zeroNode(opNode)
 					poolI++
+					zeroNode(opNode)
 					opNode.elem = *juxtapositionElement
 					opNode.left = *n
 					hole = &opNode.right
@@ -363,8 +374,8 @@ func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxta
 			}
 
 			opNode := &pool.nodes[poolI]
-			zeroNode(opNode)
 			poolI++
+			zeroNode(opNode)
 			opNode.elem = e
 			*hole = opNode
 			hole = &opNode.right
@@ -373,8 +384,8 @@ func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxta
 			// value
 
 			valueNode := &pool.nodes[poolI]
-			zeroNode(valueNode)
 			poolI++
+			zeroNode(valueNode)
 			valueNode.elem = e
 
 			if hole == nil {
@@ -382,8 +393,8 @@ func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxta
 					pe := &ParseError[E]{ParseErrorUnexpectedValue, e}
 					errors = append(errors, pe)
 					errorNode := &pool.nodes[poolI]
-					zeroNode(errorNode)
 					poolI++
+					zeroNode(errorNode)
 					errorNode.elem = e
 					errorNode.left = *parenRootP
 					errorNode.err = pe
@@ -392,8 +403,8 @@ func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxta
 				} else {
 					n := findOpLevel(*juxtapositionElement, parenRootP, hole)
 					opNode := &pool.nodes[poolI]
-					zeroNode(opNode)
 					poolI++
+					zeroNode(opNode)
 					opNode.elem = *juxtapositionElement
 					opNode.left = *n
 					hole = &opNode.right
@@ -420,8 +431,8 @@ func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxta
 		pe := &ParseError[E]{ParseErrorUnexpectedOperator, elements[len(elements)-1]}
 		errors = append(errors, pe)
 		errorNode := &pool.nodes[poolI]
-		zeroNode(errorNode)
 		poolI++
+		zeroNode(errorNode)
 		errorNode.elem = elements[len(elements)-1]
 		errorNode.err = pe
 		*hole = errorNode
@@ -436,6 +447,7 @@ func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxta
 			pe := &ParseError[E]{ParseErrorMissingClosingParen, elements[len(elements)-1]}
 			errors = append(errors, pe)
 			node := &pool.nodes[poolI]
+			// no need to increment poolI as we won't be using the pool again
 			zeroNode(node)
 			node.left = root
 			node.err = pe
