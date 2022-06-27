@@ -68,16 +68,6 @@ func MakeGenericTrie[I constraints.Unsigned, T ByteIndexable](keywords []T) (Gen
 		return MakeEmptyTrie[I](), true
 	}
 
-	maxLen := 0
-	totalLen := 0
-	for _, k := range keywords {
-		if len(k) > maxLen {
-			maxLen = len(k)
-		}
-
-		totalLen += len(k)
-	}
-
 	var trie GenericTrie[I]
 	trie.backingSlice = make([]I, nodeSize*2)
 
