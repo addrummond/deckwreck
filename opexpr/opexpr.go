@@ -34,12 +34,9 @@ const (
 	// CloseAllParens is the ExpressionKind for a closing parenthesis that closes all
 	// currently open parentheses.
 	CloseAllParens ExpressionKind = isParen | isCloseParen | isCloseAllParen
-	// ParentheticalLeftAssoc is the expression kind for a left associative
-	// parenthetical operator (such as C/Javscript's [...] indexation operator).
-	ParentheticalLeftAssoc ExpressionKind = isParen | hasLeftArg | hasRightArg
-	// ParentheticalRightAssoc is the expression kind for a right associative
-	// parenthetical operator.
-	ParentheticalRightAssoc ExpressionKind = isParen | hasLeftArg | hasRightArg | isRightAssoc
+	// Parenthetical is the expression kind for a parenthetical operator (such as
+	// C/Javscript's [...] indexation operator).
+	Parenthetical ExpressionKind = isParen | hasLeftArg | hasRightArg
 	// Value is the ExpressionKind for a value.
 	Value ExpressionKind = 0
 )
@@ -62,10 +59,8 @@ func (k ExpressionKind) String() string {
 		return "Postfix"
 	case Value:
 		return "Value"
-	case ParentheticalRightAssoc:
-		return "ParentheticalRightAssoc"
-	case ParentheticalLeftAssoc:
-		return "ParentheticalLefttAssoc"
+	case Parenthetical:
+		return "Parenthetical"
 	default:
 		panic(fmt.Sprintf("Unrecognized OperatorKind %v", int(k)))
 	}

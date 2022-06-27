@@ -295,8 +295,8 @@ func TestFoo(t *testing.T) {
 		{
 			WithoutJuxtaposition,
 			JuxLeftAssoc,
-			"1 + 2 [[ 2 + 3 ]",
-			"⎡1 + ⎡2 [[ ⎡2 + 3⎦⎦⎦",
+			"1 ++ 2 [[ 2 + 3 ]",
+			"⎡1 ++ ⎡2 [[ ⎡2 + 3⎦⎦⎦",
 			0,
 		},
 		{

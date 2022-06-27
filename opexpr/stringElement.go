@@ -68,9 +68,6 @@ func (s StringElement) ExpressionKind(hasExpressionToLeft bool) ExpressionKind {
 	}
 
 	if isParenSymbol(string(s)) {
-		if s[0] == '[' {
-			return BinaryRightAssoc | isParen
-		}
 		return BinaryLeftAssoc | isParen
 	}
 
