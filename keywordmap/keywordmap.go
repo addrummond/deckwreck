@@ -15,7 +15,6 @@ package keywordmap
 
 import "golang.org/x/exp/constraints"
 
-//const maxEntries = int(^uintType(0)) + 1
 const nodeSize = 17
 
 // Trie is the recommended instantiation of GenericTrie. A backing array of
