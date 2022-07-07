@@ -6,398 +6,140 @@ import (
 	"testing"
 )
 
-func TestFoo(t *testing.T) {
-	const (
-		WithJuxtaposition = iota
-		WithoutJuxtaposition
-		Both
-	)
+const (
+	WithJuxtaposition = iota
+	WithoutJuxtaposition
+	Both
+)
 
-	const (
-		JuxLeftAssoc = iota
-		JuxRightAssoc
-	)
+const (
+	JuxLeftAssoc = iota
+	JuxRightAssoc
+)
 
-	type tst struct {
-		jux           int
-		juxAssoc      int
-		input, output string
-		nErrors       int
-	}
+func testParse(t *testing.T, jux, juxAssoc, nErrors int, input, output string) {
+	t.Logf("Input: %v\n", input)
 
-	tsts := []tst{
-		{
-			Both,
-			JuxLeftAssoc,
-			"1 + 2 + 3",
-			"⎡⎡1 + 2⎦ + 3⎦",
-			0,
-		},
-		{
-			Both,
-			JuxLeftAssoc,
-			"1 +{ 2 +{ 3",
-			"⎡1 +{ ⎡2 +{ 3⎦⎦",
-			0,
-		},
-		{
-			Both,
-			JuxLeftAssoc,
-			"+' 1 + 2",
-			"⎡⎡+'1⎦ + 2⎦",
-			0,
-		},
-		{
-			Both,
-			JuxLeftAssoc,
-			"",
-			"",
-			0,
-		},
-		{
-			Both,
-			JuxLeftAssoc,
-			"++' 1 + 2",
-			"⎡++'⎡1 + 2⎦⎦",
-			0,
-		},
-		{
-			WithJuxtaposition,
-			JuxLeftAssoc,
-			"1 2",
-			"⎡1 / 2⎦",
-			0,
-		},
-		{
-			WithJuxtaposition,
-			JuxLeftAssoc,
-			"1 2 3 4 5 6 7",
-			"⎡⎡⎡⎡⎡⎡1 / 2⎦ / 3⎦ / 4⎦ / 5⎦ / 6⎦ / 7⎦",
-			0,
-		},
-		{
-			WithJuxtaposition,
-			JuxRightAssoc,
-			"1 2 3 4 5 6 7",
-			"⎡1 /{ ⎡2 /{ ⎡3 /{ ⎡4 /{ ⎡5 /{ ⎡6 /{ 7⎦⎦⎦⎦⎦⎦",
-			0,
-		},
-		{
-			WithJuxtaposition,
-			JuxLeftAssoc,
-			"! 1 ! 2",
-			"⎡⎡!1⎦ / ⎡!2⎦⎦",
-			0,
-		},
-		{
-			WithJuxtaposition,
-			JuxLeftAssoc,
-			"!! 1 ! 2",
-			"⎡!!⎡1 / ⎡!2⎦⎦⎦",
-			0,
-		},
-		{
-			WithJuxtaposition,
-			JuxLeftAssoc,
-			"! 1 !! 2",
-			"⎡⎡!1⎦ / ⎡!!2⎦⎦",
-			0,
-		},
-		{
-			WithJuxtaposition,
-			JuxLeftAssoc,
-			"! 1 ! !! 2",
-			"⎡⎡!1⎦ / ⎡!⎡!!2⎦⎦⎦",
-			0,
-		},
-		{
-			WithJuxtaposition,
-			JuxLeftAssoc,
-			"! 1 ! ! 2",
-			"⎡⎡!1⎦ / ⎡!⎡!2⎦⎦⎦",
-			0,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"1 err",
-			"⎡1 @error:ParseErrorUnexpectedValue@err err⎦",
-			1,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"! 1 ! 2",
-			"⎡⎡!1⎦ @error:ParseErrorUnexpectedOperator@! ⎡!2⎦⎦",
-			1,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"!! 1 ! 2",
-			"⎡⎡!!1⎦ @error:ParseErrorUnexpectedOperator@! ⎡!2⎦⎦",
-			1,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"! 1 !! 2",
-			"⎡⎡!1⎦ @error:ParseErrorUnexpectedOperator@!! ⎡!!2⎦⎦",
-			1,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"! 1 ! !! 2",
-			"⎡⎡!1⎦ @error:ParseErrorUnexpectedOperator@! ⎡!⎡!!2⎦⎦⎦",
-			1,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"! 1 ! ! 2",
-			"⎡⎡!1⎦ @error:ParseErrorUnexpectedOperator@! ⎡!⎡!2⎦⎦⎦",
-			1,
-		},
-		{
-			JuxLeftAssoc,
-			Both,
-			"! 1 * ( 2 + 3 ) ++ 4 ::{ 9 ::{ 10 ::{ nil",
-			"⎡⎡⎡!1⎦ * (⎡2 + 3⎦)⎦ ++ ⎡4 ::{ ⎡9 ::{ ⎡10 ::{ nil⎦⎦⎦⎦",
-			0,
-		},
-		{
-			JuxLeftAssoc,
-			Both,
-			"! 1 * ( 2 + 3 ) ++ ( ( ( 4 ::{ 9 ) ) ) ::{ 10 ::{ nil",
-			"⎡⎡⎡!1⎦ * (⎡2 + 3⎦)⎦ ++ ⎡(((⎡4 ::{ 9⎦))) ::{ ⎡10 ::{ nil⎦⎦⎦",
-			0,
-		},
-		{
-			JuxLeftAssoc,
-			Both,
-			"! 1 * ( 2 + 3 ) ++ * 4 ::{ 9 ::{ 10 ::{ nil",
-			"⎡⎡⎡!1⎦ * (⎡2 + 3⎦)⎦ ++ ⎡⎡@error:ParseErrorUnexpectedOperator@* * 4⎦ ::{ ⎡9 ::{ ⎡10 ::{ nil⎦⎦⎦⎦",
-			1,
-		},
-		{
-			JuxLeftAssoc,
-			Both,
-			"( 1 + 2 )",
-			"(⎡1 + 2⎦)",
-			0,
-		},
-		{
-			JuxLeftAssoc,
-			Both,
-			"( [ 1 + 2 ] )",
-			"([⎡1 + 2⎦])",
-			0,
-		},
-		{
-			JuxLeftAssoc,
-			Both,
-			"( ( 1 + 2 )",
-			"⎡((⎡1 + 2⎦))@error:ParseErrorMissingClosingParen@)⎦",
-			1,
-		},
-		{
-			JuxLeftAssoc,
-			Both,
-			"( 1 + 2",
-			"⎡(⎡1 + 2⎦)@error:ParseErrorMissingClosingParen@2⎦",
-			1,
-		},
-		{
-			JuxLeftAssoc,
-			Both,
-			"( (1 + 2",
-			"⎡(⎡(1 + 2⎦)@error:ParseErrorMissingClosingParen@2⎦",
-			1,
-		},
-		{
-			JuxLeftAssoc,
-			Both,
-			"( 1 + 2 ]",
-			"(⎡⎡1 + 2⎦@error:ParseErrorWrongKindOfClosingParen@]⎦)",
-			1,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"1 +{ 2 ++{ 3 ++{ 4 ++{ 5",
-			"⎡⎡1 +{ 2⎦ ++{ ⎡3 ++{ ⎡4 ++{ 5⎦⎦⎦",
-			0,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"1 +{ 2 ++{ 3 ++{ 4 ++{ 5 +++{ 9",
-			"⎡⎡⎡1 +{ 2⎦ ++{ ⎡3 ++{ ⎡4 ++{ 5⎦⎦⎦ +++{ 9⎦",
-			0,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"1 +{ 2 ++{ 3 --{ 4 **{ 5 +++{ 9",
-			"⎡⎡⎡1 +{ 2⎦ ++{ ⎡3 --{ ⎡4 **{ 5⎦⎦⎦ +++{ 9⎦",
-			0,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"1 [[ 2 + 3 ]",
-			"⎡1 [[ ⎡2 + 3⎦⎦",
-			0,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"1 (( 2 + 3 )",
-			"⎡1 (( ⎡2 + 3⎦⎦",
-			0,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"1 (( 2 + 3 ) (( 4 + 5 )",
-			"⎡⎡1 (( ⎡2 + 3⎦⎦ (( ⎡4 + 5⎦⎦",
-			0,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"1 [[ 2 + 3 ] [[ 4 ]",
-			"⎡⎡1 [[ ⎡2 + 3⎦⎦ [[ 4⎦",
-			0,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"1 +{ ( 2 + 3 ) +{ ( 4 )",
-			"⎡1 +{ ⎡(⎡2 + 3⎦) +{ (4)⎦⎦",
-			0,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"1 + 2 ++ 2 + 3",
-			"⎡⎡1 + 2⎦ ++ ⎡2 + 3⎦⎦",
-			0,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"1 + 2 (( 2 + 3 )",
-			"⎡⎡1 + 2⎦ (( ⎡2 + 3⎦⎦",
-			0,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"1 ++ 2 [[ 2 + 3 ]",
-			"⎡1 ++ ⎡2 [[ ⎡2 + 3⎦⎦⎦",
-			0,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"1 + 2 [[[ 2 + 3 ]",
-			"⎡⎡1 + 2⎦ [[[ ⎡2 + 3⎦⎦",
-			0,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"1 +++ 2 [[ 2 + 3 ]",
-			"⎡1 +++ ⎡2 [[ ⎡2 + 3⎦⎦⎦",
-			0,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"1 [[ 2 ] [[ 3 ]",
-			"⎡⎡1 [[ 2⎦ [[ 3⎦",
-			0,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"1 (( 2 ) (( 3 )",
-			"⎡⎡1 (( 2⎦ (( 3⎦",
-			0,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"1 ++[ 2 ++[ 3 ++[ 4 * 5",
-			"⎡1 ++[ ⎡2 ++[ ⎡3 ++[ ⎡4 * 5⎦⎦⎦⎦",
-			0,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"1 ++ 2 ++ 3 ++ 4 * 5",
-			"⎡⎡⎡1 ++ 2⎦ ++ 3⎦ ++ ⎡4 * 5⎦⎦",
-			0,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"1 ++ 2 -- 3 ++ 4 * 5",
-			"⎡⎡⎡1 ++ 2⎦ -- 3⎦ ++ ⎡4 * 5⎦⎦",
-			0,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"1 +++{ 2 +++{ 3 ++{ 4 ++{ 5 + 6 + 7 + 8",
-			"⎡1 +++{ ⎡2 +++{ ⎡3 ++{ ⎡4 ++{ ⎡⎡⎡5 + 6⎦ + 7⎦ + 8⎦⎦⎦⎦⎦",
-			0,
-		},
-		{
-			WithoutJuxtaposition,
-			JuxLeftAssoc,
-			"1 [[[ 2 + 3 ] + 4",
-			"⎡⎡1 [[[ ⎡2 + 3⎦⎦ + 4⎦",
-			0,
-		},
-	}
+	pool := MakeNodePool[SimpleNode[StringElement], StringElement](32)
 
-	pool := MakeNodePool[SimpleNode[StringElement], StringElement](64)
-
-	for _, tst := range tsts {
-		t.Logf("Input: %v\n", tst.input)
-
-		if tst.jux == WithJuxtaposition || tst.jux == Both {
-			var jux StringElement
-			if tst.juxAssoc == JuxRightAssoc {
-				jux = StringElement("/{")
-			} else {
-				jux = StringElement("/")
-			}
-			wJuxRoot, wJuxErrs := ParseSliceWithJuxtaposition(MakeStringElements(tst.input), &jux, pool)
-			wJuxOutput := ShowSimpleNode(wJuxRoot)
-
-			if len(wJuxErrs) != tst.nErrors {
-				t.Errorf("Expected %v (with jux) errors, got %v\n", tst.nErrors, len(wJuxErrs))
-			}
-			if wJuxOutput != tst.output {
-				t.Errorf("Expected output (with jux): %v\nGot: %v\n", tst.output, wJuxOutput)
-			}
+	if jux == WithJuxtaposition || jux == Both {
+		var jux StringElement
+		if juxAssoc == JuxRightAssoc {
+			jux = StringElement("/{")
+		} else {
+			jux = StringElement("/")
 		}
-		if tst.jux == WithoutJuxtaposition || tst.jux == Both {
-			woJuxRoot, woJuxErrs := ParseSlice(MakeStringElements(tst.input), pool)
-			woJuxOutput := ShowSimpleNode(woJuxRoot)
+		wJuxRoot, wJuxErrs := ParseSliceWithJuxtaposition(MakeStringElements(input), &jux, pool)
+		wJuxOutput := ShowSimpleNode(wJuxRoot)
 
-			if len(woJuxErrs) != tst.nErrors {
-				t.Errorf("Expected %v (without jux) errors, got %v\n", tst.nErrors, len(woJuxErrs))
-			}
-			if woJuxOutput != tst.output {
-				t.Errorf("Expected output (without jux): %v\nGot: %v\n", tst.output, woJuxOutput)
-			}
+		if len(wJuxErrs) != nErrors {
+			t.Errorf("Expected %v (with jux) errors, got %v\n", nErrors, len(wJuxErrs))
+		}
+		if wJuxOutput != output {
+			t.Errorf("Expected output (with jux): %v\nGot: %v\n", output, wJuxOutput)
 		}
 	}
+	if jux == WithoutJuxtaposition || jux == Both {
+		woJuxRoot, woJuxErrs := ParseSlice(MakeStringElements(input), pool)
+		woJuxOutput := ShowSimpleNode(woJuxRoot)
+
+		if len(woJuxErrs) != nErrors {
+			t.Errorf("Expected %v (without jux) errors, got %v\n", nErrors, len(woJuxErrs))
+		}
+		if woJuxOutput != output {
+			t.Errorf("Expected output (without jux): %v\nGot: %v\n", output, woJuxOutput)
+		}
+	}
+}
+
+func TestSimpleLeftAssocExpression(t *testing.T) {
+	testParse(t, Both, JuxLeftAssoc, 0, "1 + 2 + 3", "⎡⎡1 + 2⎦ + 3⎦")
+}
+
+func TestSimpleRightAssocExpression(t *testing.T) {
+	testParse(t, Both, JuxLeftAssoc, 0, "1 +{ 2 +{ 3", "⎡1 +{ ⎡2 +{ 3⎦⎦")
+}
+
+func TestSimpleExpressionWithUnaryPrefix(t *testing.T) {
+	testParse(t, Both, JuxLeftAssoc, 0, "+' 1 + 2", "⎡⎡+'1⎦ + 2⎦")
+}
+
+func TestEmptyExpression(t *testing.T) {
+	testParse(t, Both, JuxLeftAssoc, 0, "", "")
+}
+
+func TestSimpleExpressionWithLowPrecUnaryPrefix(t *testing.T) {
+	testParse(t, Both, JuxLeftAssoc, 0, "++' 1 + 2", "⎡++'⎡1 + 2⎦⎦")
+}
+
+func TestSimpleJux(t *testing.T) {
+	testParse(t, WithJuxtaposition, JuxLeftAssoc, 0, "1 2", "⎡1 / 2⎦")
+}
+
+func TestMultiJux(t *testing.T) {
+	testParse(t, WithJuxtaposition, JuxLeftAssoc, 0, "1 2 3 4 5 6 7", "⎡⎡⎡⎡⎡⎡1 / 2⎦ / 3⎦ / 4⎦ / 5⎦ / 6⎦ / 7⎦")
+}
+
+func TestMultiRightJux(t *testing.T) {
+	testParse(t, WithJuxtaposition, JuxRightAssoc, 0, "1 2 3 4 5 6 7", "⎡1 /{ ⎡2 /{ ⎡3 /{ ⎡4 /{ ⎡5 /{ ⎡6 /{ 7⎦⎦⎦⎦⎦⎦")
+}
+
+func TestJuxWithPrefixOps(t *testing.T) {
+	testParse(t, WithJuxtaposition, JuxLeftAssoc, 0, "! 1 ! 2", "⎡⎡!1⎦ / ⎡!2⎦⎦")
+}
+
+func TestJuxWithLowPrecPrefixOp(t *testing.T) {
+	testParse(t, WithJuxtaposition, JuxLeftAssoc, 0, "!! 1 ! 2", "⎡!!⎡1 / ⎡!2⎦⎦⎦")
+	testParse(t, WithJuxtaposition, JuxLeftAssoc, 0, "! 1 !! 2", "⎡⎡!1⎦ / ⎡!!2⎦⎦")
+	testParse(t, WithJuxtaposition, JuxLeftAssoc, 0, "! 1 ! !! 2", "⎡⎡!1⎦ / ⎡!⎡!!2⎦⎦⎦")
+	testParse(t, WithJuxtaposition, JuxLeftAssoc, 0, "! 1 ! ! 2", "⎡⎡!1⎦ / ⎡!⎡!2⎦⎦⎦")
+}
+
+func TestJuxWithJuxDisabled(t *testing.T) {
+	testParse(t, WithoutJuxtaposition, JuxLeftAssoc, 1, "1 err", "⎡1 @error:ParseErrorUnexpectedValue@err err⎦")
+	testParse(t, WithoutJuxtaposition, JuxLeftAssoc, 1, "! 1 ! 2", "⎡⎡!1⎦ @error:ParseErrorUnexpectedOperator@! ⎡!2⎦⎦")
+	testParse(t, WithoutJuxtaposition, JuxLeftAssoc, 1, "!! 1 ! 2", "⎡⎡!!1⎦ @error:ParseErrorUnexpectedOperator@! ⎡!2⎦⎦")
+	testParse(t, WithoutJuxtaposition, JuxLeftAssoc, 1, "! 1 !! 2", "⎡⎡!1⎦ @error:ParseErrorUnexpectedOperator@!! ⎡!!2⎦⎦")
+	testParse(t, WithoutJuxtaposition, JuxLeftAssoc, 1, "! 1 ! !! 2", "⎡⎡!1⎦ @error:ParseErrorUnexpectedOperator@! ⎡!⎡!!2⎦⎦⎦")
+	testParse(t, WithoutJuxtaposition, JuxLeftAssoc, 1, "! 1 ! ! 2", "⎡⎡!1⎦ @error:ParseErrorUnexpectedOperator@! ⎡!⎡!2⎦⎦⎦")
+}
+
+func TestComplexExpressions(t *testing.T) {
+	testParse(t, Both, JuxLeftAssoc, 0, "! 1 * ( 2 + 3 ) ++ 4 ::{ 9 ::{ 10 ::{ nil", "⎡⎡⎡!1⎦ * (⎡2 + 3⎦)⎦ ++ ⎡4 ::{ ⎡9 ::{ ⎡10 ::{ nil⎦⎦⎦⎦")
+	testParse(t, Both, JuxLeftAssoc, 0, "! 1 * ( 2 + 3 ) ++ ( ( ( 4 ::{ 9 ) ) ) ::{ 10 ::{ nil", "⎡⎡⎡!1⎦ * (⎡2 + 3⎦)⎦ ++ ⎡(((⎡4 ::{ 9⎦))) ::{ ⎡10 ::{ nil⎦⎦⎦")
+	testParse(t, Both, JuxLeftAssoc, 0, "1 +{ 2 ++{ 3 ++{ 4 ++{ 5", "⎡⎡1 +{ 2⎦ ++{ ⎡3 ++{ ⎡4 ++{ 5⎦⎦⎦")
+	testParse(t, Both, JuxLeftAssoc, 0, "1 +{ 2 ++{ 3 ++{ 4 ++{ 5 +++{ 9", "⎡⎡⎡1 +{ 2⎦ ++{ ⎡3 ++{ ⎡4 ++{ 5⎦⎦⎦ +++{ 9⎦")
+	testParse(t, Both, JuxLeftAssoc, 0, "1 +{ 2 ++{ 3 --{ 4 **{ 5 +++{ 9", "⎡⎡⎡1 +{ 2⎦ ++{ ⎡3 --{ ⎡4 **{ 5⎦⎦⎦ +++{ 9⎦")
+	testParse(t, Both, JuxLeftAssoc, 0, "1 + 2 ++ 2 + 3", "⎡⎡1 + 2⎦ ++ ⎡2 + 3⎦⎦")
+	testParse(t, Both, JuxLeftAssoc, 0, "1 ++[ 2 ++[ 3 ++[ 4 * 5", "⎡1 ++[ ⎡2 ++[ ⎡3 ++[ ⎡4 * 5⎦⎦⎦⎦")
+	testParse(t, Both, JuxLeftAssoc, 0, "1 ++ 2 ++ 3 ++ 4 * 5", "⎡⎡⎡1 ++ 2⎦ ++ 3⎦ ++ ⎡4 * 5⎦⎦")
+	testParse(t, Both, JuxLeftAssoc, 0, "1 ++ 2 -- 3 ++ 4 * 5", "⎡⎡⎡1 ++ 2⎦ -- 3⎦ ++ ⎡4 * 5⎦⎦")
+	testParse(t, Both, JuxLeftAssoc, 0, "1 +++{ 2 +++{ 3 ++{ 4 ++{ 5 + 6 + 7 + 8", "⎡1 +++{ ⎡2 +++{ ⎡3 ++{ ⎡4 ++{ ⎡⎡⎡5 + 6⎦ + 7⎦ + 8⎦⎦⎦⎦⎦")
+	testParse(t, Both, JuxLeftAssoc, 1, "! 1 * ( 2 + 3 ) ++ * 4 ::{ 9 ::{ 10 ::{ nil", "⎡⎡⎡!1⎦ * (⎡2 + 3⎦)⎦ ++ ⎡⎡@error:ParseErrorUnexpectedOperator@* * 4⎦ ::{ ⎡9 ::{ ⎡10 ::{ nil⎦⎦⎦⎦")
+}
+
+func TestSimpleParens(t *testing.T) {
+	testParse(t, Both, JuxLeftAssoc, 0, "( 1 + 2 )", "(⎡1 + 2⎦)")
+	testParse(t, Both, JuxLeftAssoc, 0, "( [ 1 + 2 ] )", "([⎡1 + 2⎦])")
+	testParse(t, Both, JuxLeftAssoc, 1, "( ( 1 + 2 )", "⎡((⎡1 + 2⎦))@error:ParseErrorMissingClosingParen@)⎦")
+	testParse(t, Both, JuxLeftAssoc, 1, "( 1 + 2", "⎡(⎡1 + 2⎦)@error:ParseErrorMissingClosingParen@2⎦")
+	testParse(t, Both, JuxLeftAssoc, 1, "( (1 + 2", "⎡(⎡(1 + 2⎦)@error:ParseErrorMissingClosingParen@2⎦")
+	testParse(t, Both, JuxLeftAssoc, 1, "( 1 + 2 ]", "(⎡⎡1 + 2⎦@error:ParseErrorWrongKindOfClosingParen@]⎦)")
+}
+
+func TestParentheticalOp(t *testing.T) {
+	testParse(t, Both, JuxLeftAssoc, 0, "1 [[ 2 + 3 ]", "⎡1 [[ ⎡2 + 3⎦⎦")
+	testParse(t, Both, JuxLeftAssoc, 0, "1 (( 2 + 3 ) (( 4 + 5 )", "⎡⎡1 (( ⎡2 + 3⎦⎦ (( ⎡4 + 5⎦⎦")
+	testParse(t, Both, JuxLeftAssoc, 0, "1 [[ 2 + 3 ] [[ 4 ]", "⎡⎡1 [[ ⎡2 + 3⎦⎦ [[ 4⎦")
+	testParse(t, Both, JuxLeftAssoc, 0, "1 +{ ( 2 + 3 ) +{ ( 4 )", "⎡1 +{ ⎡(⎡2 + 3⎦) +{ (4)⎦⎦")
+	testParse(t, Both, JuxLeftAssoc, 0, "1 +{ ( 2 + 3 ) +{ ( 4 )", "⎡1 +{ ⎡(⎡2 + 3⎦) +{ (4)⎦⎦")
+	testParse(t, Both, JuxLeftAssoc, 0, "1 + 2 (( 2 + 3 )", "⎡⎡1 + 2⎦ (( ⎡2 + 3⎦⎦")
+	testParse(t, Both, JuxLeftAssoc, 0, "1 ++ 2 [[ 2 + 3 ]", "⎡1 ++ ⎡2 [[ ⎡2 + 3⎦⎦⎦")
+	testParse(t, Both, JuxLeftAssoc, 0, "1 + 2 [[[ 2 + 3 ]", "⎡⎡1 + 2⎦ [[[ ⎡2 + 3⎦⎦")
+	testParse(t, Both, JuxLeftAssoc, 0, "1 +++ 2 [[ 2 + 3 ]", "⎡1 +++ ⎡2 [[ ⎡2 + 3⎦⎦⎦")
+	testParse(t, Both, JuxLeftAssoc, 0, "1 [[ 2 ] [[ 3 ]", "⎡⎡1 [[ 2⎦ [[ 3⎦")
+	testParse(t, Both, JuxLeftAssoc, 0, "1 [[[ 2 + 3 ] + 4", "⎡⎡1 [[[ ⎡2 + 3⎦⎦ + 4⎦")
+
 }
 
 func benchmarkRightAssoc(b *testing.B, nArgs int) {
