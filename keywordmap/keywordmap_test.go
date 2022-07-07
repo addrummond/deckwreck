@@ -13,6 +13,21 @@ func TestMakeTrieWithStrings(t *testing.T) {
 		t.Errorf("Expecting trie to be constructed successfuly.")
 	}
 
+	testMakeTrie(t, trie)
+}
+
+func TestMakeTrieWithStringsUsingAddToTrie(t *testing.T) {
+	trie := MakeEmptyTrie[uint16]()
+	for i, s := range []string{"debu", "with", "and", "for", "case", "to", "form"} {
+		if !AddToTrie(&trie, s, i) {
+			t.Errorf("Expecting trie to be constructed successfuly.")
+		}
+	}
+
+	testMakeTrie(t, trie)
+}
+
+func testMakeTrie(t *testing.T, trie Trie) {
 	if KeywordIndex(trie, "debu") != 0 {
 		t.Errorf("Expecting 'debug' to be in trie")
 	}
