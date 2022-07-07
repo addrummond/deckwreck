@@ -129,17 +129,16 @@ func TestSimpleParens(t *testing.T) {
 
 func TestParentheticalOp(t *testing.T) {
 	testParse(t, Both, JuxLeftAssoc, 0, "1 [[ 2 + 3 ]", "⎡1 [[ ⎡2 + 3⎦⎦")
-	testParse(t, Both, JuxLeftAssoc, 0, "1 (( 2 + 3 ) (( 4 + 5 )", "⎡⎡1 (( ⎡2 + 3⎦⎦ (( ⎡4 + 5⎦⎦")
+	testParse(t, Both, JuxLeftAssoc, 0, "1 [[ 2 + 3 ] [[ 4 + 5 ]", "⎡⎡1 [[ ⎡2 + 3⎦⎦ [[ ⎡4 + 5⎦⎦")
 	testParse(t, Both, JuxLeftAssoc, 0, "1 [[ 2 + 3 ] [[ 4 ]", "⎡⎡1 [[ ⎡2 + 3⎦⎦ [[ 4⎦")
 	testParse(t, Both, JuxLeftAssoc, 0, "1 +{ ( 2 + 3 ) +{ ( 4 )", "⎡1 +{ ⎡(⎡2 + 3⎦) +{ (4)⎦⎦")
 	testParse(t, Both, JuxLeftAssoc, 0, "1 +{ ( 2 + 3 ) +{ ( 4 )", "⎡1 +{ ⎡(⎡2 + 3⎦) +{ (4)⎦⎦")
-	testParse(t, Both, JuxLeftAssoc, 0, "1 + 2 (( 2 + 3 )", "⎡⎡1 + 2⎦ (( ⎡2 + 3⎦⎦")
+	testParse(t, Both, JuxLeftAssoc, 0, "1 + 2 [[ 2 + 3 ]", "⎡⎡1 + 2⎦ [[ ⎡2 + 3⎦⎦")
 	testParse(t, Both, JuxLeftAssoc, 0, "1 ++ 2 [[ 2 + 3 ]", "⎡1 ++ ⎡2 [[ ⎡2 + 3⎦⎦⎦")
 	testParse(t, Both, JuxLeftAssoc, 0, "1 + 2 [[[ 2 + 3 ]", "⎡⎡1 + 2⎦ [[[ ⎡2 + 3⎦⎦")
 	testParse(t, Both, JuxLeftAssoc, 0, "1 +++ 2 [[ 2 + 3 ]", "⎡1 +++ ⎡2 [[ ⎡2 + 3⎦⎦⎦")
 	testParse(t, Both, JuxLeftAssoc, 0, "1 [[ 2 ] [[ 3 ]", "⎡⎡1 [[ 2⎦ [[ 3⎦")
 	testParse(t, Both, JuxLeftAssoc, 0, "1 [[[ 2 + 3 ] + 4", "⎡⎡1 [[[ ⎡2 + 3⎦⎦ + 4⎦")
-
 }
 
 func benchmarkRightAssoc(b *testing.B, nArgs int) {
