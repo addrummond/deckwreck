@@ -68,6 +68,10 @@ func TestEmptyExpression(t *testing.T) {
 	testParse(t, Both, JuxLeftAssoc, 0, "", "")
 }
 
+func TestSimpleExpression(t *testing.T) {
+	testParse(t, Both, JuxLeftAssoc, 0, "1", "1")
+}
+
 func TestSimpleExpressionWithLowPrecUnaryPrefix(t *testing.T) {
 	testParse(t, Both, JuxLeftAssoc, 0, "++' 1 + 2", "⎡++'⎡1 + 2⎦⎦")
 }
