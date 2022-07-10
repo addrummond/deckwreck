@@ -170,8 +170,7 @@ type nodePool[T any, E TreeBuilder[T, E]] struct {
 }
 
 // MakeNodePool makes a pool of shadow parse tree nodes for a given tree node
-// type and element type. The third type parameter should be inferred
-// automatically.
+// type and element type.
 func MakeNodePool[T any, E TreeBuilder[T, E]](capacity int) *nodePool[T, E] {
 	return &nodePool[T, E]{make([]node[T, E], capacity), make([]**node[T, E], capacity/4), make([]int, capacity/4), make([]*node[T, E], capacity/4)}
 }
