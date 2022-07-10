@@ -259,7 +259,7 @@ func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxta
 	hole := &root
 
 	// for each paren level.
-	pool.parenRoots = pool.parenRoots[:0] // reset to length 1 while leaving existing capacity
+	pool.parenRoots = pool.parenRoots[:1] // reset to length 1 while leaving existing capacity
 	pool.parenKinds = pool.parenKinds[:0] // reset to empty while leaving exisring capacity
 	pool.parenRoots[0] = &root
 
