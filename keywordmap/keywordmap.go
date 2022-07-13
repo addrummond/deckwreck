@@ -157,7 +157,7 @@ func KeywordIndex[T ByteIndexable, I constraints.Unsigned](trie GenericTrie[I], 
 		// }
 		// ^^^
 		// if off is zero, then the next lookup will go to the dummy initial node
-		// with no children, so the lookup will fail anyway. This let's us avoid
+		// with no children, so the lookup will fail anyway. This lets us avoid
 		// branching here on off == 0
 
 		b2 := b & 0xF
