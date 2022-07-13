@@ -43,7 +43,7 @@ type GenericTrie[I constraints.Unsigned] struct {
 	//
 	// The total size of each trie node is therefore 17 I-sized words.
 	//
-	// The root node is the second element of the slice. The first element is a
+	// The root node is the second node in the slice. The first node is a
 	// dummy 'nowhere node' that loops back on itself for all nibbles. This means
 	// that a child index of zero doesn't necessarily have to be tested for at
 	// each step. It's also possible just to keep looping round and round the
