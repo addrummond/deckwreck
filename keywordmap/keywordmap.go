@@ -31,8 +31,7 @@ type GenericTrie[I constraints.Unsigned] struct {
 	// children. This makes it feasible to use an array to store the indices of
 	// child nodes.
 	//
-	// The root of the trie is placed at the beginning of the array. Each trie
-	// node consists of (in order):
+	// Each trie node consists of (in order):
 	//
 	//     * 16 child node indices for every possible following nibble. 0 is used
 	//       if there is no child for the relevant nibble. (As the trie is a
@@ -43,6 +42,12 @@ type GenericTrie[I constraints.Unsigned] struct {
 	//       the relevant keyword.
 	//
 	// The total size of each trie node is therefore 17 I-sized words.
+	//
+	// The root node is the second element of the slice. The first element is a
+	// dummy 'nowhere node' that loops back on itself for all nibbles. This means
+	// that a child index of zero doesn't necessarily have to be tested for at
+	// each step. It's also possible just to keep looping round and round the
+	// nowhere node until the input is exhausted.
 	backingSlice []I
 }
 
