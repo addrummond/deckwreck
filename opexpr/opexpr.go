@@ -104,7 +104,7 @@ const (
 	// ParseErrorUnexpectedClosingParen occurs when a closing parenthesis is found
 	// with no matching opening parenthesis.
 	ParseErrorUnexpectedClosingParen
-	// ParseErrorWrongKindOfClosingParena occurs when an opening parenthesis is
+	// ParseErrorWrongKindOfClosingParen occurs when an opening parenthesis is
 	// closed with a parenthesis of a different kind (e.g. '(' is closed with
 	// ']')).
 	ParseErrorWrongKindOfClosingParen
