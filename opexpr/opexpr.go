@@ -473,7 +473,7 @@ func findOpLevel[T any, E TreeBuilder[T, E]](e E, root **node[T, E], hole **node
 			break
 		}
 		// don't descend into foo[bar]
-		// not necessary to check ek&isCloseParen == 0 because ')' wouldnt have ek&hasRightArg != 0
+		// not necessary to check ek&isCloseParen == 0 because ')' wouldnt have ek&(hasLeftArg|hasRightArg)!= 0
 		if ek&isParen != 0 && ek&(hasLeftArg|hasRightArg) != 0 {
 			break
 		}
