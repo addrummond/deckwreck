@@ -70,7 +70,7 @@ func (k ExpressionKind) String() string {
 type Element interface {
 	// ParenKind returns an integer representing the 'kind' of parenthesis. For
 	// example, by assigning different kinds to '()' and '[]' you can require that
-	// opening and closing parenthesis are appropriately matched. Its value is
+	// opening and closing parentheses are appropriately matched. Its value is
 	// applicable only for OpenParen, CloseParen and CloseAllParens elements.
 	ParenKind() int
 	// ExpressionKind returns a value representing the kind of the expression (see
