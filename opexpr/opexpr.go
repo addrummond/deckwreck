@@ -227,7 +227,7 @@ func ParseStreamWithJuxtaposition[T any, E TreeBuilder[T, E], S Stream[E]](strea
 }
 
 // ParseSlice parses a slice of input elements that implement the Element
-// interface. It returns pointer to the root parse tree node, or nil if the
+// interface. It returns a pointer to the root parse tree node, or nil if the
 // input slice is empty. It should only be necessary to provide the first type
 // parameter (the type of the nodes in the resulting parse tree). The
 // existingNodePool argument should be the return value of MakeNodePool().
