@@ -18,28 +18,34 @@ const (
 	isCloseAllParen ExpressionKind = 32
 )
 
-const (
-	// BinaryLeftAssoc is the ExpressionKind for a left associative binary operator.
-	BinaryLeftAssoc ExpressionKind = hasLeftArg | hasRightArg
-	// BinaryRightAssoc is the ExpressionKind for a right associative binary operator.
-	BinaryRightAssoc ExpressionKind = hasLeftArg | hasRightArg | isRightAssoc
-	// Prefix is the ExpressionKind for a prefix operator.
-	Prefix ExpressionKind = hasRightArg
-	// Postfix is the ExpressionKind for a postfix operator.
-	Postfix ExpressionKind = hasLeftArg
-	// OpenParen is the ExpressionKind for an opening parenthesis
-	OpenParen ExpressionKind = isParen
-	// CloseParen is the ExpressionKind for a closing parenthesis
-	CloseParen ExpressionKind = isParen | isCloseParen
-	// CloseAllParens is the ExpressionKind for a closing parenthesis that closes all
-	// currently open parentheses.
-	CloseAllParens ExpressionKind = isParen | isCloseParen | isCloseAllParen
-	// Parenthetical is the expression kind for a parenthetical operator (such as
-	// C/Javscript's [...] indexation operator).
-	Parenthetical ExpressionKind = isParen | hasLeftArg | hasRightArg
-	// Value is the ExpressionKind for a value.
-	Value ExpressionKind = 0
-)
+// BinaryLeftAssoc is the ExpressionKind for a left associative binary operator.
+const BinaryLeftAssoc ExpressionKind = hasLeftArg | hasRightArg
+
+// BinaryRightAssoc is the ExpressionKind for a right associative binary operator.
+const BinaryRightAssoc ExpressionKind = hasLeftArg | hasRightArg | isRightAssoc
+
+// Prefix is the ExpressionKind for a prefix operator.
+const Prefix ExpressionKind = hasRightArg
+
+// Postfix is the ExpressionKind for a postfix operator.
+const Postfix ExpressionKind = hasLeftArg
+
+// OpenParen is the ExpressionKind for an opening parenthesis
+const OpenParen ExpressionKind = isParen
+
+// CloseParen is the ExpressionKind for a closing parenthesis
+const CloseParen ExpressionKind = isParen | isCloseParen
+
+// CloseAllParens is the ExpressionKind for a closing parenthesis that closes all
+// currently open parentheses.
+const CloseAllParens ExpressionKind = isParen | isCloseParen | isCloseAllParen
+
+// Parenthetical is the expression kind for a parenthetical operator (such as
+// C/Javscript's [...] indexation operator).
+const Parenthetical ExpressionKind = isParen | hasLeftArg | hasRightArg
+
+// Value is the ExpressionKind for a value.
+const Value ExpressionKind = 0
 
 func (k ExpressionKind) String() string {
 	switch k {
@@ -95,22 +101,11 @@ type Stream[E any] interface {
 type ParseErrorKind int
 
 const (
-	// ParseErrorUnexpectedOperator occurs when an operator is found in a position
-	// where it cannot be incorprated into a valid parse.
-	ParseErrorUnexpectedOperator = iota
-	// ParseErrorUnexpectedValue occurs when a value is found in a position where
-	// it cannot be incorporated into a valid parse.
-	ParseErrorUnexpectedValue
-	// ParseErrorUnexpectedClosingParen occurs when a closing parenthesis is found
-	// with no matching opening parenthesis.
-	ParseErrorUnexpectedClosingParen
-	// ParseErrorWrongKindOfClosingParen occurs when an opening parenthesis is
-	// closed with a parenthesis of a different kind (e.g. '(' is closed with
-	// ']')).
-	ParseErrorWrongKindOfClosingParen
-	// ParseErrorMissingClosingParen occurs when no closing parenthesis is found
-	// for an opening parenthesis.
-	ParseErrorMissingClosingParen
+	ParseErrorUnexpectedOperator      ParseErrorKind = iota // operator found in position where it can't be incorporated into a valid parse
+	ParseErrorUnexpectedValue         ParseErrorKind = iota // value found in position where it can't be incorporated into a valid parse
+	ParseErrorUnexpectedClosingParen  ParseErrorKind = iota // closing parent found with no matching opening paren
+	ParseErrorWrongKindOfClosingParen ParseErrorKind = iota // opening paren closed with wrong kind of closing paren (e.g. '(' is closed with ']')
+	ParseErrorMissingClosingParen     ParseErrorKind = iota // missing closing paren
 )
 
 func (k ParseErrorKind) String() string {
