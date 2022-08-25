@@ -6,6 +6,8 @@ recursive descent parser. At present it provides
 * fast maps from keyword strings to integers; and
 * a precedence-based expression parser with O(n) performance.
 
+[Documentation on pkg.go.dev](https://pkg.go.dev/github.com/addrummond/deckwreck)
+
 ## Current status
 
 The keyword map code is stable and well tested. The expression parsing code
