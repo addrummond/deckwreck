@@ -1,3 +1,4 @@
+// Package opexpr provides a a precedence-based expression parser with O(n) performance.
 package opexpr
 
 import (
