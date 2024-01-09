@@ -158,7 +158,7 @@ type SimpleNode[T Element] struct {
 	Value       T
 }
 
-type nodePool[T any, E TreeBuilder[T, E]] struct {
+type NodePool[T any, E TreeBuilder[T, E]] struct {
 	nodes      []node[T, E]
 	parenRoots []**node[T, E]
 	parenKinds []int
@@ -167,8 +167,8 @@ type nodePool[T any, E TreeBuilder[T, E]] struct {
 
 // MakeNodePool makes a pool of shadow parse tree nodes for a given tree node
 // type and element type.
-func MakeNodePool[T any, E TreeBuilder[T, E]](capacity int) *nodePool[T, E] {
-	return &nodePool[T, E]{make([]node[T, E], capacity), make([]**node[T, E], capacity/4), make([]int, capacity/4), make([]*node[T, E], capacity/4)}
+func MakeNodePool[T any, E TreeBuilder[T, E]](capacity int) *NodePool[T, E] {
+	return &NodePool[T, E]{make([]node[T, E], capacity), make([]**node[T, E], capacity/4), make([]int, capacity/4), make([]*node[T, E], capacity/4)}
 }
 
 type node[T any, EP Element] struct {
@@ -195,14 +195,14 @@ func zeroNode[T any, EP Element](n *node[T, EP]) {
 // nil if the input stream is empty. It should only be necessary to provide the
 // first type parameter (the type of the nodes in the resulting parse tree). The
 // existingNodePool argument should be the return value of MakeNodePool().
-func ParseStream[T any, E TreeBuilder[T, E], S Stream[E]](stream S, pool *nodePool[T, E]) (*T, []*ParseError[E]) {
+func ParseStream[T any, E TreeBuilder[T, E], S Stream[E]](stream S, pool *NodePool[T, E]) (*T, []*ParseError[E]) {
 	return ParseStreamWithJuxtaposition(stream, nil, pool)
 }
 
 // ParseStreamWithJuxtaposition works like ParseStream except that it takes an
 // additional operator element. This element is used to combine juxtaposed
 // values.
-func ParseStreamWithJuxtaposition[T any, E TreeBuilder[T, E], S Stream[E]](stream S, juxtapositionElement *E, pool *nodePool[T, E]) (*T, []*ParseError[E]) {
+func ParseStreamWithJuxtaposition[T any, E TreeBuilder[T, E], S Stream[E]](stream S, juxtapositionElement *E, pool *NodePool[T, E]) (*T, []*ParseError[E]) {
 	const stackAllocSize = 128
 	stackElems := make([]E, 0, stackAllocSize)
 	elems := &stackElems
@@ -227,14 +227,14 @@ func ParseStreamWithJuxtaposition[T any, E TreeBuilder[T, E], S Stream[E]](strea
 // input slice is empty. It should only be necessary to provide the first type
 // parameter (the type of the nodes in the resulting parse tree). The
 // existingNodePool argument should be the return value of MakeNodePool().
-func ParseSlice[T any, E TreeBuilder[T, E]](elements []E, pool *nodePool[T, E]) (*T, []*ParseError[E]) {
+func ParseSlice[T any, E TreeBuilder[T, E]](elements []E, pool *NodePool[T, E]) (*T, []*ParseError[E]) {
 	return ParseSliceWithJuxtaposition(elements, nil, pool)
 }
 
 // ParseSliceWithJuxtaposition works like ParseSlice except that it takes a
 // pointer to an additional operator element. If the pointer is non-nil, the
 // element is used to combine juxtaposed values.
-func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxtapositionElement *E, pool *nodePool[T, E]) (*T, []*ParseError[E]) {
+func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxtapositionElement *E, pool *NodePool[T, E]) (*T, []*ParseError[E]) {
 	var errors []*ParseError[E]
 
 	// Shortcut for the very common case of a single expression
@@ -494,7 +494,7 @@ func findOpLevel[T any, E TreeBuilder[T, E]](e E, root **node[T, E], hole **node
 	return n
 }
 
-func buildTree[T any, E TreeBuilder[T, E]](root *node[T, E], elements []E, juxtapositionElement *E, stackDepth int, pool *nodePool[T, E]) *T {
+func buildTree[T any, E TreeBuilder[T, E]](root *node[T, E], elements []E, juxtapositionElement *E, stackDepth int, pool *NodePool[T, E]) *T {
 	if root == nil {
 		return nil
 	}
