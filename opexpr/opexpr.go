@@ -103,10 +103,10 @@ type ParseErrorKind int
 
 const (
 	ParseErrorUnexpectedOperator      ParseErrorKind = iota // operator found in position where it can't be incorporated into a valid parse
-	ParseErrorUnexpectedValue         ParseErrorKind = iota // value found in position where it can't be incorporated into a valid parse
-	ParseErrorUnexpectedClosingParen  ParseErrorKind = iota // closing parent found with no matching opening paren
-	ParseErrorWrongKindOfClosingParen ParseErrorKind = iota // opening paren closed with wrong kind of closing paren (e.g. '(' is closed with ']')
-	ParseErrorMissingClosingParen     ParseErrorKind = iota // missing closing paren
+	ParseErrorUnexpectedValue                               // value found in position where it can't be incorporated into a valid parse
+	ParseErrorUnexpectedClosingParen                        // closing parent found with no matching opening paren
+	ParseErrorWrongKindOfClosingParen                       // opening paren closed with wrong kind of closing paren (e.g. '(' is closed with ']')
+	ParseErrorMissingClosingParen                           // missing closing paren
 )
 
 func (k ParseErrorKind) String() string {
