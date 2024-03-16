@@ -445,7 +445,7 @@ func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxta
 		}
 	}
 
-	rr, errs := buildTree(root, elements, juxtapositionElement, depth, pool), errors
+	rr, errs := buildTree(root, depth, pool), errors
 
 	return rr, errs
 }
@@ -494,7 +494,7 @@ func findOpLevel[T any, E TreeBuilder[T, E]](e E, root **node[T, E], hole **node
 	return n
 }
 
-func buildTree[T any, E TreeBuilder[T, E]](root *node[T, E], elements []E, juxtapositionElement *E, stackDepth int, pool *nodePool[T, E]) *T {
+func buildTree[T any, E TreeBuilder[T, E]](root *node[T, E], stackDepth int, pool *nodePool[T, E]) *T {
 	if root == nil {
 		return nil
 	}
