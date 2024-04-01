@@ -426,7 +426,6 @@ func ParseSliceWithJuxtaposition[T any, E TreeBuilder[T, E]](elements []E, juxta
 		errorNode.elem = elements[len(elements)-1]
 		errorNode.err = pe
 		*hole = errorNode
-		hole = nil
 	}
 
 	// Wrap with an error node if there are missing closing parens and we don't
