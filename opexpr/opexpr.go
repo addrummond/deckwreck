@@ -190,8 +190,8 @@ func zeroNode[T any, EP Element](n *node[T, EP]) {
 // ParseSeq parses an sequence of input elements. It returns pointer to the root
 // parse tree node, or nil if the input sequence is empty. It should only be
 // necessary to provide the first type parameter (the type of the nodes in the
-// resulting parse tree). The existingNodePool argument should be the return
-// value of MakeNodePool().
+// resulting parse tree). The pool argument should be the return value of
+// MakeNodePool().
 func ParseSeq[T any, E TreeBuilder[T, E]](seq iter.Seq[E], pool *nodePool[T, E]) (*T, []*ParseError[E]) {
 	return ParseSeqWithJuxtaposition(seq, nil, pool)
 }
@@ -218,8 +218,8 @@ func ParseSeqWithJuxtaposition[T any, E TreeBuilder[T, E]](seq iter.Seq[E], juxt
 // ParseSlice parses a slice of input elements that implement the Element
 // interface. It returns a pointer to the root parse tree node, or nil if the
 // input slice is empty. It should only be necessary to provide the first type
-// parameter (the type of the nodes in the resulting parse tree). The
-// existingNodePool argument should be the return value of MakeNodePool().
+// parameter (the type of the nodes in the resulting parse tree). The pool
+// argument should be the return value of MakeNodePool().
 func ParseSlice[T any, E TreeBuilder[T, E]](elements []E, pool *nodePool[T, E]) (*T, []*ParseError[E]) {
 	return ParseSliceWithJuxtaposition(elements, nil, pool)
 }
