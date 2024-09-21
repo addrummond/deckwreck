@@ -26,10 +26,10 @@ around 1.5-2 times faster than a hash map for typical use cases.
 
 Parsing expressions with operators of different precedence levels is one of the
 more challenging aspects of writing a recursive descent parser. Deckwreck's
-expression parser uses an iterative algorithm and does not recurse. The
-expression parser constructs a shadow parse tree from a reusable pool of nodes.
-The shadow parse tree is then walked to construct the real parse tree. Parse
-tree construction is controlled by user-supplied interface implementations.
+expression parser uses a non-recursive iterative algorithm. The expression
+parser constructs a shadow parse tree from a reusable pool of nodes. The shadow
+parse tree is then walked to construct the real parse tree. Parse tree
+construction is controlled by user-supplied interface implementations.
 
 Notable features of Deckwreck's expression parser:
 
