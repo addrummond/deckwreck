@@ -2,6 +2,7 @@ package opexpr
 
 import (
 	"fmt"
+	"iter"
 	"strings"
 )
 
@@ -25,6 +26,18 @@ func MakeStringElements(s string) []StringElement {
 		ses = append(ses, StringElement(s))
 	}
 	return ses
+}
+
+// MakeStringSeq constructs an sequence of StringElements by splitting the
+// input string on the space character.
+func MakeStringSeq(s string) iter.Seq[StringElement] {
+	return func(yield func(StringElement) bool) {
+		for _, s := range strings.Split(s, " ") {
+			if !yield(StringElement(s)) {
+				break
+			}
+		}
+	}
 }
 
 func isParenSymbol(s string) bool {

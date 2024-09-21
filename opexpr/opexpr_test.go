@@ -1,6 +1,7 @@
 package opexpr
 
 import (
+	"iter"
 	"math/rand"
 	"strings"
 	"testing"
@@ -143,6 +144,60 @@ func TestParentheticalOp(t *testing.T) {
 	testParse(t, Both, JuxLeftAssoc, 0, "1 +++ 2 [[ 2 + 3 ]", "⎡1 +++ ⎡2 [[ ⎡2 + 3⎦⎦⎦")
 	testParse(t, Both, JuxLeftAssoc, 0, "1 [[ 2 ] [[ 3 ]", "⎡⎡1 [[ 2⎦ [[ 3⎦")
 	testParse(t, Both, JuxLeftAssoc, 0, "1 [[[ 2 + 3 ] + 4", "⎡⎡1 [[[ ⎡2 + 3⎦⎦ + 4⎦")
+}
+
+// just to test that ParseSeq function works as expected; underlying parse logic
+// is the same.
+func TestParseSeq(t *testing.T) {
+	pool := MakeNodePool[SimpleNode[StringElement], StringElement](32)
+	root, errs := ParseSeq(MakeStringSeq("1 ++ 2 ++ 3"), pool)
+	if len(errs) != 0 {
+		t.Fatalf("Expected no errors, got %+v", errs)
+	}
+	parse := ShowSimpleNode(root)
+	if ShowSimpleNode(root) != "⎡⎡1 ++ 2⎦ ++ 3⎦" {
+		t.Fatalf("Expected parse ⎡⎡1 ++ 2⎦ ++ 3⎦, got %v", parse)
+	}
+}
+
+func TestParseSeqEmptySeq(t *testing.T) {
+	pool := MakeNodePool[SimpleNode[StringElement], StringElement](32)
+	root, errs := ParseSeq(emptySeq[StringElement](), pool)
+	if len(errs) != 0 {
+		t.Fatalf("Expected no errors, got %+v", errs)
+	}
+	parse := ShowSimpleNode(root)
+	if root != nil {
+		t.Fatalf("Expected nil parse, got %+v", parse)
+	}
+}
+
+// just to test that ParseSeqWithJuxtaposition function works as expected;
+// underlying parse logic is the same.
+func TestParseSeqWithJuxtaposition(t *testing.T) {
+	pool := MakeNodePool[SimpleNode[StringElement], StringElement](32)
+	jux := StringElement("/")
+	root, errs := ParseSeqWithJuxtaposition(MakeStringSeq("1 2 3"), &jux, pool)
+	if len(errs) != 0 {
+		t.Fatalf("Expected no errors, got %+v", errs)
+	}
+	parse := ShowSimpleNode(root)
+	if ShowSimpleNode(root) != "⎡⎡1 / 2⎦ / 3⎦" {
+		t.Fatalf("Expected parse ⎡⎡1 / 2⎦ / 3⎦, got %v", parse)
+	}
+}
+
+func TestParseSeqWithJuxtapositionEmptySeq(t *testing.T) {
+	pool := MakeNodePool[SimpleNode[StringElement], StringElement](32)
+	jux := StringElement("/")
+	root, errs := ParseSeqWithJuxtaposition(emptySeq[StringElement](), &jux, pool)
+	if len(errs) != 0 {
+		t.Fatalf("Expected no errors, got %+v", errs)
+	}
+	parse := ShowSimpleNode(root)
+	if root != nil {
+		t.Fatalf("Expected nil parse, got %+v", parse)
+	}
 }
 
 func benchmarkRightAssoc(b *testing.B, nArgs int) {
@@ -318,4 +373,8 @@ func randomStringElement(r *rand.Rand) StringElement {
 		sb.WriteByte(c)
 	}
 	return StringElement(sb.String())
+}
+
+func emptySeq[T any]() iter.Seq[T] {
+	return func(yield func(T) bool) {}
 }

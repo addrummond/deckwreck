@@ -3,6 +3,7 @@ package opexpr
 
 import (
 	"fmt"
+	"iter"
 	"strings"
 )
 
@@ -93,10 +94,6 @@ type Element interface {
 	// operators that can be either prefix or postfix, or operators that can be
 	// either binary or unary.
 	Precedence(hasExpressionToLeft bool) int
-}
-
-type Stream[E any] interface {
-	Next() (E, bool)
 }
 
 type ParseErrorKind int
@@ -190,27 +187,23 @@ func zeroNode[T any, EP Element](n *node[T, EP]) {
 	n.bottom = nil
 }
 
-// ParseStream parses a stream of input elements that implement the
-// ElementStream interface. It returns pointer to the root parse tree node, or
-// nil if the input stream is empty. It should only be necessary to provide the
-// first type parameter (the type of the nodes in the resulting parse tree). The
-// existingNodePool argument should be the return value of MakeNodePool().
-func ParseStream[T any, E TreeBuilder[T, E], S Stream[E]](stream S, pool *nodePool[T, E]) (*T, []*ParseError[E]) {
-	return ParseStreamWithJuxtaposition(stream, nil, pool)
+// ParseSeq parses an sequence of input elements. It returns pointer to the root
+// parse tree node, or nil if the input sequence is empty. It should only be
+// necessary to provide the first type parameter (the type of the nodes in the
+// resulting parse tree). The existingNodePool argument should be the return
+// value of MakeNodePool().
+func ParseSeq[T any, E TreeBuilder[T, E]](seq iter.Seq[E], pool *nodePool[T, E]) (*T, []*ParseError[E]) {
+	return ParseSeqWithJuxtaposition(seq, nil, pool)
 }
 
-// ParseStreamWithJuxtaposition works like ParseStream except that it takes an
+// ParseSeqWithJuxtaposition works like ParseSeq except that it takes an
 // additional operator element. This element is used to combine juxtaposed
 // values.
-func ParseStreamWithJuxtaposition[T any, E TreeBuilder[T, E], S Stream[E]](stream S, juxtapositionElement *E, pool *nodePool[T, E]) (*T, []*ParseError[E]) {
+func ParseSeqWithJuxtaposition[T any, E TreeBuilder[T, E]](seq iter.Seq[E], juxtapositionElement *E, pool *nodePool[T, E]) (*T, []*ParseError[E]) {
 	const stackAllocSize = 128
 	stackElems := make([]E, 0, stackAllocSize)
 	elems := &stackElems
-	for {
-		e, ok := stream.Next()
-		if !ok {
-			break
-		}
+	for e := range seq {
 		if elems == &stackElems && len(*elems) == stackAllocSize {
 			heapElems := make([]E, stackAllocSize, stackAllocSize*2)
 			copy(heapElems, stackElems)
